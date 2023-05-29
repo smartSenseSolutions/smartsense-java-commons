@@ -1,0 +1,92 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
+}
+
+allprojects {
+    group = groupId
+    version = packageVersion
+}
+
+subprojects {
+
+    apply plugin: "java"
+    apply plugin: "maven-publish"
+    apply plugin: "signing"
+
+    sourceCompatibility = JavaVersion.VERSION_17
+
+    repositories {
+        mavenCentral()
+    }
+
+    task javadocJar(type: Jar) {
+        archiveClassifier = 'javadoc'
+        from javadoc
+    }
+
+    task sourcesJar(type: Jar) {
+        archiveClassifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives javadocJar, sourcesJar
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                signing {
+                    sign publishing.publications.mavenJava
+                }
+                artifact jar
+                artifact tasks.javadocJar
+                artifact tasks.sourcesJar
+
+                repositories {
+                    maven {
+                        name = "Ossrh"
+                        url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                        credentials() {
+                            username = ossrhUsername
+                            password = ossrhPassword
+                        }
+                    }
+                }
+
+                pom {
+                    name = 'Commons Dao Application'
+                    packaging 'jar'
+                    description = 'Commons-Dao used for make easy implementation of spring data jpa.'
+                    url = 'https://github.com/smartSenseSolutions/smartsense-java-commons'
+
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'dilip.dhankecah'
+                            name = 'Dilip Dhankecha'
+                            email = 'dilip.dhankecha@smartsensesolutions.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://github.com/smartSenseSolutions/smartsense-java-commons'
+                        developerConnection = 'scm:git:ssh://github.com/smartSenseSolutions/smartsense-java-commons.git'
+                        url = 'https://github.com/smartSenseSolutions/smartsense-java-commons/'
+                    }
+                }
+
+            }
+        }
+    }
+
+}
