@@ -15,8 +15,6 @@ allprojects {
 subprojects {
 
     apply plugin: "java"
-    apply plugin: "maven-publish"
-    apply plugin: "signing"
 
     sourceCompatibility = JavaVersion.VERSION_17
 
@@ -37,7 +35,11 @@ subprojects {
     artifacts {
         archives javadocJar, sourcesJar
     }
+}
 
+project(":commons-dao") {
+    apply plugin: "maven-publish"
+    apply plugin: "signing"
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -88,5 +90,4 @@ subprojects {
             }
         }
     }
-
 }

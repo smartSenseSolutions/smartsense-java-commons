@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dao-poc
+    username: root
+    password:
+    driverClassName: org.postgresql.Driver
+  flyway:
+    enabled: true
+    schemas: public
