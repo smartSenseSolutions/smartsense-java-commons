@@ -21,7 +21,6 @@ import com.smartsensesolutions.java.commons.filter.FilterCriteria;
 import com.smartsensesolutions.java.commons.operator.Operator;
 import com.smartsensesolutions.java.commons.sort.Sort;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -48,7 +47,6 @@ public class FilterRequest {
      */
     @NotNull(message = "{NotNull.RecordFilter.size}")
     @Min(value = 10)
-    @Max(value = 20)
     private int size;
     /**
      * Indicates the sorting objects that used in JPA query.
@@ -71,8 +69,8 @@ public class FilterRequest {
      * @param operator   - Indicates operator
      * @param recordType - Indicates the values
      */
-    public void appendNewCriteria(String fieldName, Operator operator, String... recordType) {
-        this.appendNewCriteria(fieldName, operator, Arrays.asList(recordType));
+    public void appendCriteria(String fieldName, Operator operator, String... recordType) {
+        this.appendCriteria(fieldName, operator, Arrays.asList(recordType));
     }
 
     /**
@@ -82,7 +80,7 @@ public class FilterRequest {
      * @param operator   - Indicates operator
      * @param recordType - Indicates the values
      */
-    public void appendNewCriteria(String fieldName, Operator operator, List<String> recordType) {
+    public void appendCriteria(String fieldName, Operator operator, List<String> recordType) {
         List<FilterCriteria> filterCriteria = this.getCriteria() != null ? this.getCriteria() : new ArrayList<>();
         filterCriteria.add(new FilterCriteria(fieldName, operator.getOperatorValue(), recordType));
         this.setCriteria(filterCriteria);

@@ -62,10 +62,15 @@ project(":commons-dao") {
                 }
 
                 pom {
-                    name = 'Commons Dao Application'
+                    name = 'Commons-Dao'
                     packaging 'jar'
                     description = 'Commons-Dao used for make easy implementation of spring data jpa.'
-                    url = 'https://github.com/smartSenseSolutions/smartsense-java-commons'
+                    url = 'https://www.smartsensesolutions.com/'
+
+                    organization {
+                        name = 'smartsensesolutions.com'
+                        url = 'https://www.smartsensesolutions.com/'
+                    }
 
                     licenses {
                         license {
@@ -75,13 +80,18 @@ project(":commons-dao") {
                     }
                     developers {
                         developer {
-                            id = 'dilip.dhankecah'
+                            id = 'dilip.dhankecha'
                             name = 'Dilip Dhankecha'
                             email = 'dilip.dhankecha@smartsensesolutions.com'
                         }
+                        developer {
+                            id = 'nitin.vavdiya'
+                            name = 'Nitin Vavdiya'
+                            email = 'nitin.vavdiya@smartsensesolutions.com'
+                        }
                     }
                     scm {
-                        connection = 'scm:git:git://github.com/smartSenseSolutions/smartsense-java-commons'
+                        connection = 'scm:git:git://github.com/smartSenseSolutions/smartsense-java-commons.git'
                         developerConnection = 'scm:git:ssh://github.com/smartSenseSolutions/smartsense-java-commons.git'
                         url = 'https://github.com/smartSenseSolutions/smartsense-java-commons/'
                     }
