@@ -45,7 +45,8 @@ public enum Operator {
     NOT_NULL("!is_null"),
     JOIN_EQUALS("join_eq"),
     JOIN_IN("join_in"),
-    JOIN_LIKE("join_like");
+    JOIN_LIKE("join_like"),
+    JOIN_NESTED("join_nested");
 
     private static final Map<String, Operator> map = new HashMap<>();
     private final String operatorValue;

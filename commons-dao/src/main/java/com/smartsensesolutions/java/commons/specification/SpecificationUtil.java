@@ -23,10 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -127,10 +124,13 @@ public class SpecificationUtil<T> {
                 predicate = this.prepareJoinPredicate(filterCriteria, root, cb);
                 break;
             case JOIN_IN:
-                predicate = this.prepareJoinInPredicate(filterCriteria, root);
+                predicate = this.prepareJoinInPredicate(filterCriteria, root, cb);
                 break;
             case JOIN_LIKE:
                 predicate = this.prepareJoinLikePredicate(filterCriteria, root, cb);
+                break;
+            case JOIN_NESTED:
+                predicate = this.prepareNestedJoinLikePredicate(cb, root, filterCriteria);
                 break;
             default:
                 throw new IllegalArgumentException("operator not implemented");
@@ -202,27 +202,80 @@ public class SpecificationUtil<T> {
         return criteriaBuilder.greaterThanOrEqualTo(root.get(filterCriteria.getColumn()), (Comparable) o);
     }
 
-    private Predicate prepareJoinPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        String[] split = filterCriteria.getColumn().split("_");
-        Join<Object, Object> join = root.join(split[0]);
-        return criteriaBuilder.equal(join.get(split[1]), filterCriteria.getValues().get(0));
-    }
-
-    private Predicate prepareJoinInPredicate(FilterCriteria filterCriteria, Root<T> root) {
-        validateValue(filterCriteria.getValues());
-        String[] split = filterCriteria.getColumn().split("_");
-        Join<Object, Object> join = root.join(split[0]);
-        return join.get(split[1]).in(filterCriteria.getValues());
-    }
-
-    private Predicate prepareJoinLikePredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        String[] split = filterCriteria.getColumn().split("_");
-        validateValue(filterCriteria.getValues());
-        List<Predicate> predicates = new ArrayList<>();
+    private Predicate prepareJoinPredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
+        validateValue(criteria.getValues());
+        String[] split = criteria.getColumn().split("_");
         Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
-        filterCriteria.getValues().forEach(value -> predicates.add(criteriaBuilder.like(join.get(split[1]).as(String.class), getContainsValue(value))));
+        String[] columnFields = split[1].split("\\$");
+        List<Predicate> predicates = new ArrayList<>();
+        for (String field : columnFields) {
+            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(join.get(field)), criteria.getValues().get(0).toLowerCase()));
+            } else {
+                predicates.add(criteriaBuilder.equal(join.get(field), criteria.getValues().get(0).toLowerCase()));
+            }
+        }
         return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+    }
+
+    private Predicate prepareJoinInPredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
+        validateValue(criteria.getValues());
+        String[] split = criteria.getColumn().split("_");
+        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
+        String[] columnFields = split[1].split("\\$");
+        List<Predicate> predicates = new ArrayList<>();
+        for (String field : columnFields) {
+            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
+                predicates.add(criteriaBuilder.lower(join.get(field)).in(criteria.getValues().stream().map(String::toLowerCase).toList()));
+            } else {
+                predicates.add(join.get(field).in(criteria.getValues().stream().map(String::toLowerCase).toList()));
+            }
+        }
+        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+    }
+
+    private Predicate prepareJoinLikePredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
+        validateValue(criteria.getValues());
+        String[] split = criteria.getColumn().split("_");
+        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
+        String[] columnFields = split[1].split("\\$");
+        List<Predicate> predicates = new ArrayList<>();
+        for (String field : columnFields) {
+            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
+                criteria.getValues().forEach(value -> predicates.add(criteriaBuilder.like(criteriaBuilder.lower(join.get(field)).as(String.class), getContainsValue(value).toLowerCase())));
+            } else {
+                criteria.getValues().forEach(value -> predicates.add(criteriaBuilder.like(join.get(field).as(String.class), getContainsValue(value).toLowerCase())));
+            }
+        }
+        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+    }
+
+    private Predicate prepareNestedJoinLikePredicate(CriteriaBuilder cb, Root<T> root, FilterCriteria criteria) {
+        validateValue(criteria.getValues());
+        String[] split = criteria.getColumn().split("#");
+        Join<Object, Object> nestedJoin = null;
+        List<Predicate> predicates = new ArrayList<>();
+        for (String column : split) {
+            String[] columnField = column.split("_");
+            if (nestedJoin == null) {
+                nestedJoin = root.join(columnField[0], JoinType.LEFT);
+            } else {
+                nestedJoin = nestedJoin.join(columnField[0], JoinType.LEFT);
+            }
+            if (columnField.length <= 1) {
+                continue;
+            }
+            String[] columnFields = columnField[1].split("\\$");
+            for (String field : columnFields) {
+                Join<Object, Object> finalNestedJoin = nestedJoin;
+                if (Objects.equals(finalNestedJoin.get(field).getJavaType().getName(), "java.lang.String")) {
+                    criteria.getValues().forEach(value -> predicates.add(cb.like(cb.lower(finalNestedJoin.get(field)).as(String.class), getContainsValue(value).toLowerCase())));
+                } else {
+                    criteria.getValues().forEach(value -> predicates.add(cb.like(finalNestedJoin.get(field).as(String.class), getContainsValue(value).toLowerCase())));
+                }
+            }
+        }
+        return cb.or(predicates.toArray(new Predicate[0]));
     }
 
     private Object getValue(Path<T> path, String value) {
