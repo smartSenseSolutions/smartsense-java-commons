@@ -279,7 +279,7 @@ public class SpecificationUtil<T> {
     }
 
     private Object getValue(Path<T> path, String value) {
-        if (path instanceof java.util.Date) {
+        if (Objects.equals(path.getJavaType().getName(), "java.util.Date")) {
             return new Date(Long.parseLong(value));
         }
         return value;

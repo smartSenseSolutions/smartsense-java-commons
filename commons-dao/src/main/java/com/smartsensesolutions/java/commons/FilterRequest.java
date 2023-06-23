@@ -46,7 +46,7 @@ public class FilterRequest {
      * Indicates the size which used for prepare pagination response from JPA query.
      */
     @NotNull(message = "{NotNull.RecordFilter.size}")
-    @Min(value = 10)
+    @Min(value = 1)
     private int size;
     /**
      * Indicates the sorting objects that used in JPA query.
