@@ -82,7 +82,7 @@ public class FilterRequest {
      */
     public void appendCriteria(String fieldName, Operator operator, List<String> recordType) {
         List<FilterCriteria> filterCriteria = this.getCriteria() != null ? this.getCriteria() : new ArrayList<>();
-        filterCriteria.add(new FilterCriteria(fieldName, operator.getOperatorValue(), recordType));
+        filterCriteria.add(new FilterCriteria(fieldName, operator, recordType));
         this.setCriteria(filterCriteria);
     }
 

@@ -44,7 +44,7 @@ public class FilterCriteria {
      * Indicates the value from the {@link Operator}.
      */
     @NotNull(message = "{NotNull.FilterCriteria.operator}")
-    private String operator;
+    private Operator operator;
     /**
      * Values that needs to be matched while querying to @{@link jakarta.persistence.Entity} class.
      */

@@ -17,7 +17,6 @@
 package com.smartsensesolutions.java.commons.specification;
 
 import com.smartsensesolutions.java.commons.filter.FilterCriteria;
-import com.smartsensesolutions.java.commons.operator.Operator;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -37,7 +36,12 @@ public class SpecificationUtil<T> {
     private static <T> Predicate getContainsPredicates(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
         validateValue(filterCriteria.getValues());
         List<Predicate> predicates = new ArrayList<>();
-        filterCriteria.getValues().forEach(value -> predicates.add(cb.like(root.get(filterCriteria.getColumn()).as(String.class), getContainsValue(value))));
+        Path<String> path = root.get(filterCriteria.getColumn());
+        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
+            filterCriteria.getValues().forEach(value -> predicates.add(cb.like(cb.lower(path).as(String.class), getContainsValue(value).toLowerCase())));
+        } else {
+            filterCriteria.getValues().forEach(value -> predicates.add(cb.like(path.as(String.class), getContainsValue(value))));
+        }
         return cb.or(predicates.toArray(new Predicate[0]));
     }
 
@@ -52,7 +56,12 @@ public class SpecificationUtil<T> {
     private static <T> Predicate getNotContainPredicates(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
         validateValue(filterCriteria.getValues());
         List<Predicate> predicates = new ArrayList<>();
-        filterCriteria.getValues().forEach(value -> predicates.add(cb.notLike(root.get(filterCriteria.getColumn()), getContainsValue(value))));
+        Path<String> path = root.get(filterCriteria.getColumn());
+        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
+            filterCriteria.getValues().forEach(value -> predicates.add(cb.notLike(cb.lower(path).as(String.class), getContainsValue(value).toLowerCase())));
+        } else {
+            filterCriteria.getValues().forEach(value -> predicates.add(cb.notLike(path, getContainsValue(value))));
+        }
         return cb.or(predicates.toArray(new Predicate[0]));
     }
 
@@ -76,8 +85,7 @@ public class SpecificationUtil<T> {
 
     private Predicate getPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
         Predicate predicate;
-        Operator operator = Operator.getOperator(filterCriteria.getOperator());
-        switch (operator) {
+        switch (filterCriteria.getOperator()) {
             case CONTAIN:
                 predicate = getContainsPredicates(filterCriteria, root, cb);
                 break;
@@ -97,7 +105,7 @@ public class SpecificationUtil<T> {
                 predicate = this.getIsNotNullPredicate(filterCriteria, root, cb);
                 break;
             case IN:
-                predicate = this.getInPredicate(filterCriteria, root);
+                predicate = this.getInPredicate(filterCriteria, root, cb);
                 break;
             case NOT_IN:
                 predicate = this.getNotInPredicate(filterCriteria, root, cb);
@@ -150,10 +158,15 @@ public class SpecificationUtil<T> {
         return criteriaBuilder.notEqual(root.get(filterCriteria.getColumn()), o);
     }
 
-    private Predicate getInPredicate(FilterCriteria filterCriteria, Root<T> root) {
+    private Predicate getInPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
         validateValue(filterCriteria.getValues());
-        Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
-        return root.get(filterCriteria.getColumn()).in(set);
+        Path<Object> path = root.get(filterCriteria.getColumn());
+        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
+            return cb.lower(path.as(String.class)).in(filterCriteria.getValues().stream().map(String::toLowerCase).collect(Collectors.toSet()));
+        } else {
+            Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
+            return path.in(set);
+        }
     }
 
     private Predicate getIsNullPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
@@ -166,8 +179,13 @@ public class SpecificationUtil<T> {
 
     private Predicate getNotInPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
         validateValue(filterCriteria.getValues());
-        Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
-        return cb.not(root.get(filterCriteria.getColumn()).in(set));
+        Path<Object> path = root.get(filterCriteria.getColumn());
+        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
+            return cb.not(cb.lower(path.as(String.class)).in(filterCriteria.getValues().stream().map(String::toLowerCase).collect(Collectors.toSet())));
+        } else {
+            Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
+            return cb.not(path.in(set));
+        }
     }
 
     private Predicate getTruePredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
