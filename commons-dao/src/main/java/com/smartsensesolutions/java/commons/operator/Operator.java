@@ -45,6 +45,7 @@ public enum Operator {
     NOT_NULL("!is_null"),
     JOIN_EQUALS("join_eq"),
     JOIN_IN("join_in"),
+    @Deprecated
     JOIN_LIKE("join_like"),
     JOIN_NESTED("join_nested");
 

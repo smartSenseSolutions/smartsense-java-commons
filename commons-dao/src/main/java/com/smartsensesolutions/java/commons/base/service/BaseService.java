@@ -269,7 +269,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
         if (Objects.isNull(filter.getSort())) {
             return PageRequest.of(filter.getPage(), filter.getSize());
         }
-        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(filter.getSort().getSortType() == SortType.ASC ? org.springframework.data.domain.Sort.Direction.ASC : Sort.Direction.DESC, filter.getSort().getColumn());
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(filter.getSort().getSortType() == SortType.ASC ? org.springframework.data.domain.Sort.Direction.ASC : Sort.Direction.DESC, filter.getSort().getColumn().split(","));
         return PageRequest.of(filter.getPage(), filter.getSize(), sort);
     }
 
