@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.smartsensesolutions.java.commons.filter;
 
-import com.smartsensesolutions.java.commons.FilterRequest;
 import com.smartsensesolutions.java.commons.operator.Operator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,23 +27,26 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * FilterCriteria used in {@link FilterRequest} to provide custom search.
+ * Criteria used in {@link FilterRequest} to provide custom search.
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class FilterCriteria {
+public class Criteria {
+
     /**
-     * Indicates the variable name that used in @{@link jakarta.persistence.Entity} class.
+     * Indicates the variable name that used in @{@link jakarta.persistence.Entity} class i.e. Entity field name
      */
-    @NotBlank(message = "{NotNull.FilterCriteria.column}")
+    @NotBlank(message = "{NotNull.Criteria.column}")
     private String column;
+
     /**
-     * Indicates the value from the {@link Operator}.
+     * Conditional operator for Criteria Indicates the value from the {@link Operator}.
      */
-    @NotNull(message = "{NotNull.FilterCriteria.operator}")
+    @NotNull(message = "{NotNull.Criteria.operator}")
     private Operator operator;
+
     /**
      * Values that needs to be matched while querying to @{@link jakarta.persistence.Entity} class.
      */

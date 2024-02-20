@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package com.smartsensesolutions.java.commons.specification;
 
-import com.smartsensesolutions.java.commons.filter.FilterCriteria;
+import com.smartsensesolutions.java.commons.filter.Criteria;
+import com.smartsensesolutions.java.commons.specification.function.MultiValuePredicateProvider;
+import com.smartsensesolutions.java.commons.specification.function.NoValuePredicateProvider;
+import com.smartsensesolutions.java.commons.specification.function.PredicateProvider;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -26,352 +29,316 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Specification will be used for generate the JPA query.
+ * Specification will be used to generate specification for {@code T} type of entity JPA query.
  *
  * @param <T> - Indicates @{@link jakarta.persistence.Entity} class.
  */
 @Component
 public class SpecificationUtil<T> {
-    private static String getContainsValue(String value) {
-        return "%".concat(value).concat("%");
+    private final String TABLE_FIELD_SEPARATOR = "\\.";
+    private final String FIELD_SEPARATOR = ",";
+
+    public Specification<T> generateOrSpecification(List<Criteria> criteriaList) {
+        return (Root<T> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            criteriaList.forEach(criteria -> predicates.add(getPredicate(criteria, root, cb)));
+            return cb.or(toArray(predicates));
+        };
     }
 
-    private static void validateValue(List<String> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            throw new IllegalArgumentException("value/s require");
+    public Specification<T> generateAndSpecification(List<Criteria> criteriaList) {
+        return (Root<T> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            criteriaList.forEach(criteria -> predicates.add(getPredicate(criteria, root, cb)));
+            return cb.and(toArray(predicates));
+        };
+    }
+
+    private Predicate getPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        return switch (criteria.getOperator()) {
+            case CONTAIN -> getContainsPredicates(criteria, root, cb);
+            case CONTAIN_WITH_WILDCARD -> getContainsWildcardPredicates(criteria, root, cb);
+            case NOT_CONTAIN -> getNotContainPredicates(criteria, root, cb);
+            case NOT_CONTAIN_WITH_WILDCARD -> getNotContainsWildcardPredicates(criteria, root, cb);
+            case EQUALS -> getEqualsPredicate(criteria, root, cb);
+            case NOT_EQUAL -> getNotEqualsPredicate(criteria, root, cb);
+            case NULL -> getIsNullPredicate(criteria, root, cb);
+            case NOT_NULL -> getIsNotNullPredicate(criteria, root, cb);
+            case IN -> getInPredicate(criteria, root, cb);
+            case NOT_IN -> getNotInPredicate(criteria, root, cb);
+            case TRUE -> getTruePredicate(criteria, root, cb);
+            case FALSE -> getFalsePredicate(criteria, root, cb);
+            case LESSER_THAN -> getLesserThanPredicate(criteria, root, cb);
+            case LESSER_EQUALS -> getLesserEqualPredicate(criteria, root, cb);
+            case GREATER_THAN -> getGretherThanPredicate(criteria, root, cb);
+            case GREATER_EQUALS -> getGretherEqualPredicate(criteria, root, cb);
+        };
+    }
+
+    private Predicate getContainsPredicates(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getContainJoinPredicate(criteria, root, cb, (c, p, v) -> c.like(c.lower(p.as(String.class)), getContainsEscValue(v.toString())));
         }
+        return getContainPredicate(criteria, root, cb, (c, p, v) -> c.like(c.lower(p.as(String.class)),
+                getContainsEscValue(v.toString()), '\\'));
     }
 
-    private Predicate getPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        Predicate predicate;
-        switch (filterCriteria.getOperator()) {
-            case CONTAIN:
-                predicate = this.getContainsPredicates(filterCriteria, root, cb);
-                break;
-            case NOT_CONTAIN:
-                predicate = this.getNotContainPredicates(filterCriteria, root, cb);
-                break;
-            case EQUALS:
-                predicate = this.getEqualsPredicate(filterCriteria, root, cb);
-                break;
-            case NOT_EQUAL:
-                predicate = this.getNotEqualsPredicate(filterCriteria, root, cb);
-                break;
-            case NULL:
-                predicate = this.getIsNullPredicate(filterCriteria, root, cb);
-                break;
-            case NOT_NULL:
-                predicate = this.getIsNotNullPredicate(filterCriteria, root, cb);
-                break;
-            case IN:
-                predicate = this.getInPredicate(filterCriteria, root, cb);
-                break;
-            case NOT_IN:
-                predicate = this.getNotInPredicate(filterCriteria, root, cb);
-                break;
-            case TRUE:
-                predicate = this.getTruePredicate(filterCriteria, root, cb);
-                break;
-            case FALSE:
-                predicate = this.getFalsePredicate(filterCriteria, root, cb);
-                break;
-            case LESSER_THAN:
-                predicate = this.getLesserThanPredicate(filterCriteria, root, cb);
-                break;
-            case LESSER_EQUALS:
-                predicate = this.getLesserEqualPredicate(filterCriteria, root, cb);
-                break;
-            case GREATER_THAN:
-                predicate = this.getGretherThanPredicate(filterCriteria, root, cb);
-                break;
-            case GREATER_EQUALS:
-                predicate = this.getGretherEqualPredicate(filterCriteria, root, cb);
-                break;
-            case JOIN_EQUALS:
-                predicate = this.prepareJoinPredicate(filterCriteria, root, cb);
-                break;
-            case JOIN_IN:
-                predicate = this.prepareJoinInPredicate(filterCriteria, root, cb);
-                break;
-            case JOIN_LIKE:
-                predicate = this.prepareJoinLikePredicate(filterCriteria, root, cb);
-                break;
-            case JOIN_NESTED:
-                predicate = this.prepareNestedJoinLikePredicate(cb, root, filterCriteria);
-                break;
-            default:
-                throw new IllegalArgumentException("operator not implemented");
+    private Predicate getContainsWildcardPredicates(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getContainJoinPredicate(criteria, root, cb, (c, p, v) -> c.like(c.lower(p.as(String.class)), v.toString()));
         }
-        return predicate;
+        return getContainPredicate(criteria, root, cb, (c, p, v) -> c.like(c.lower(p.as(String.class)), v.toString()));
     }
 
-    private Predicate getContainsPredicates(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        validateValue(filterCriteria.getValues());
-        if (filterCriteria.getColumn().split("\\.").length > 1) {
-            return this.joinContain(filterCriteria, root, cb);
-        } else {
-            return this.contain(filterCriteria, root, cb);
+    private Predicate getNotContainPredicates(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getContainJoinPredicate(criteria, root, cb, (c, p, v) -> c.notLike(c.lower(p.as(String.class)), getContainsEscValue(v.toString())));
         }
+        return getContainPredicate(criteria, root, cb, (c, p, v) -> c.notLike(c.lower(p.as(String.class)), getContainsEscValue(v.toString())));
     }
 
-    private Predicate contain(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        List<Predicate> predicates = new ArrayList<>();
-        Path<String> path = root.get(filterCriteria.getColumn());
-        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
-            filterCriteria.getValues().forEach(value -> predicates.add(cb.like(cb.lower(path).as(String.class), getContainsValue(value).toLowerCase())));
-        } else {
-            filterCriteria.getValues().forEach(value -> predicates.add(cb.like(path.as(String.class), getContainsValue(value))));
+    private Predicate getNotContainsWildcardPredicates(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getContainJoinPredicate(criteria, root, cb, (c, p, v) -> c.notLike(c.lower(p.as(String.class)), v.toString()));
         }
-        return cb.or(predicates.toArray(new Predicate[0]));
+        return getContainPredicate(criteria, root, cb, (c, p, v) -> c.notLike(c.lower(p.as(String.class)), v.toString()));
     }
 
-    private Predicate joinContain(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
+    private Predicate getEqualsPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.equal(p, v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.equal(p, v));
+    }
+
+    private Predicate getNotEqualsPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.notEqual(p, v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.notEqual(p, v));
+    }
+
+    private Predicate getIsNullPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getNoValueJoinPredicate(criteria, root, cb, (c, p) -> c.isNull(p));
+        }
+        return getNoValuePredicate(criteria, root, cb, (c, p) -> c.isNull(p));
+    }
+
+    private Predicate getIsNotNullPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getNoValueJoinPredicate(criteria, root, cb, CriteriaBuilder::isNotNull);
+        }
+        return getNoValuePredicate(criteria, root, cb, CriteriaBuilder::isNotNull);
+    }
+
+    private Predicate getInPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getMultiValueJoinPredicate(criteria, root, cb, (c, p, s) -> p.in(s));
+        }
+        return getMultiValuePredicate(criteria, root, cb, (c, p, s) -> p.in(s));
+    }
+
+    private Predicate getNotInPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getMultiValueJoinPredicate(criteria, root, cb, (c, p, s) -> c.not(p.in(s)));
+        }
+        return getMultiValuePredicate(criteria, root, cb, (c, p, s) -> c.not(p.in(s)));
+    }
+
+    private Predicate getTruePredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getNoValueJoinPredicate(criteria, root, cb, CriteriaBuilder::isTrue);
+        }
+        return getNoValuePredicate(criteria, root, cb, CriteriaBuilder::isTrue);
+    }
+
+    private Predicate getFalsePredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getNoValueJoinPredicate(criteria, root, cb, (c, p) -> c.isFalse(p));
+        }
+        return getNoValuePredicate(criteria, root, cb, (c, p) -> c.isFalse(p));
+    }
+
+    private Predicate getLesserThanPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.lessThan(p, (Comparable) v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.lessThan(p, (Comparable) v));
+    }
+
+    private Predicate getLesserEqualPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.lessThanOrEqualTo(p, (Comparable) v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.lessThanOrEqualTo(p, (Comparable) v));
+    }
+
+    private Predicate getGretherThanPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.greaterThan(p, (Comparable) v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.greaterThan(p, (Comparable) v));
+    }
+
+    private Predicate getGretherEqualPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
+        validateValue(criteria.getValues());
+        if (criteria.getColumn().split(TABLE_FIELD_SEPARATOR).length > 1) {
+            return getJoinPredicate(criteria, root, cb, (c, p, v) -> c.greaterThanOrEqualTo(p, (Comparable) v));
+        }
+        return getPredicate(criteria, root, cb, (c, p, v) -> c.greaterThanOrEqualTo(p, (Comparable) v));
+    }
+
+    private <D> Predicate getNoValueJoinPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, NoValuePredicateProvider provider) {
         String name = criteria.getColumn();
-        List<String> values = criteria.getValues();
-        String[] split = name.split("\\.");
-        Join<Object, Object> join = this.getJoin(root, name);
-        String[] columnFields = split[1].split(",");
+        Join<Object, Object> joinTable = getJoinTable(root, name);
+        String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
-                values.forEach(value -> predicates.add(criteriaBuilder.like(criteriaBuilder.lower(join.get(field)).as(String.class), getContainsValue(value).toLowerCase())));
-            } else {
-                values.forEach(value -> predicates.add(criteriaBuilder.like(join.get(field).as(String.class), getContainsValue(value).toLowerCase())));
-            }
+        for (String field : joinFields) {
+            predicates.add(provider.getPredicate(cb, joinTable.get(field)));
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    private Join<Object, Object> getJoin(Root<T> root, String column) {
-        String[] split = column.split("\\.");
-        return root.join(split[0], JoinType.LEFT);
-    }
-
-    private Predicate getNotContainPredicates(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        validateValue(filterCriteria.getValues());
+    private Predicate getNoValuePredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, NoValuePredicateProvider provider) {
+        String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
-        Path<String> path = root.get(filterCriteria.getColumn());
-        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
-            filterCriteria.getValues().forEach(value -> predicates.add(cb.notLike(cb.lower(path).as(String.class), getContainsValue(value).toLowerCase())));
-        } else {
-            filterCriteria.getValues().forEach(value -> predicates.add(cb.notLike(path, getContainsValue(value))));
+        for (String field : fields) {
+            predicates.add(provider.getPredicate(cb, root.get(field)));
         }
-        return cb.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    public Specification<T> generateOrSpecification(List<FilterCriteria> criteria) {
-        return (final Root<T> root, final CriteriaQuery<?> cq, final CriteriaBuilder cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            criteria.forEach(filterCriteria -> predicates.add(this.getPredicate(filterCriteria, root, cb)));
-            return cb.or(predicates.toArray(new Predicate[predicates.size()]));
-        };
-    }
-
-    public Specification<T> generateSpecification(List<FilterCriteria> criteria) {
-        return (final Root<T> root, final CriteriaQuery<?> cq, final CriteriaBuilder cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            criteria.forEach(filterCriteria -> predicates.add(this.getPredicate(filterCriteria, root, cb)));
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-    }
-
-    private Predicate getEqualsPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        if (filterCriteria.getColumn().split("\\.").length > 1) {
-            return this.joinEqual(filterCriteria, root, criteriaBuilder);
-        } else {
-            return this.equal(filterCriteria, root, criteriaBuilder);
-        }
-    }
-
-    private Predicate equal(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.equal(root.get(filterCriteria.getColumn()), o);
-    }
-
-    private Predicate joinEqual(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        String name = filterCriteria.getColumn();
-        List<String> values = filterCriteria.getValues();
-        String[] split = name.split("\\.");
-        Join<Object, Object> join = this.getJoin(root, name);
-        String[] columnFields = split[1].split(",");
+    private Predicate getJoinPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, PredicateProvider provider) {
+        String name = criteria.getColumn();
+        Join<Object, Object> joinTable = getJoinTable(root, name);
+        String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            predicates.add(criteriaBuilder.equal(join.get(field), values.get(0)));
+        for (String field : joinFields) {
+            Object value = getValue(joinTable.get(field), criteria.getValues().get(0));
+            predicates.add(provider.getPredicate(cb, joinTable.get(field), value));
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    private Predicate getNotEqualsPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        if (filterCriteria.getColumn().split("\\.").length > 1) {
-            return this.joinNotEqual(filterCriteria, root, criteriaBuilder);
-        } else {
-            return this.notEqual(filterCriteria, root, criteriaBuilder);
-        }
-    }
-
-    private Predicate notEqual(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.notEqual(root.get(filterCriteria.getColumn()), o);
-    }
-
-    private Predicate joinNotEqual(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        String name = filterCriteria.getColumn();
-        List<String> values = filterCriteria.getValues();
-        String[] split = name.split("\\.");
-        Join<Object, Object> join = this.getJoin(root, name);
-        String[] columnFields = split[1].split(",");
+    private Predicate getPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, PredicateProvider provider) {
+        String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            predicates.add(criteriaBuilder.notEqual(join.get(field), values.get(0)));
+        for (String field : fields) {
+            Object value = getValue(root.get(field), criteria.getValues().get(0));
+            predicates.add(provider.getPredicate(cb, root.get(field), value));
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    private Predicate getInPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        validateValue(filterCriteria.getValues());
-        Path<Object> path = root.get(filterCriteria.getColumn());
-        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
-            return cb.lower(path.as(String.class)).in(filterCriteria.getValues().stream().map(String::toLowerCase).collect(Collectors.toSet()));
-        } else {
-            Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
-            return path.in(set);
-        }
-    }
-
-    private Predicate getIsNullPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        return criteriaBuilder.isNull(root.get(filterCriteria.getColumn()));
-    }
-
-    private Predicate getIsNotNullPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        return criteriaBuilder.isNotNull(root.get(filterCriteria.getColumn()));
-    }
-
-    private Predicate getNotInPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder cb) {
-        validateValue(filterCriteria.getValues());
-        Path<Object> path = root.get(filterCriteria.getColumn());
-        if (Objects.equals(path.getJavaType().getName(), "java.lang.String")) {
-            return cb.not(cb.lower(path.as(String.class)).in(filterCriteria.getValues().stream().map(String::toLowerCase).collect(Collectors.toSet())));
-        } else {
-            Set<Object> set = filterCriteria.getValues().stream().map(value -> this.getValue(root.get(filterCriteria.getColumn()), value)).collect(Collectors.toSet());
-            return cb.not(path.in(set));
-        }
-    }
-
-    private Predicate getTruePredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        return criteriaBuilder.isTrue(root.get(filterCriteria.getColumn()));
-    }
-
-    private Predicate getFalsePredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        return criteriaBuilder.not(criteriaBuilder.isTrue(root.get(filterCriteria.getColumn())));
-    }
-
-    private Predicate getLesserThanPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.lessThan(root.get(filterCriteria.getColumn()), (Comparable) o);
-    }
-
-    private Predicate getLesserEqualPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.lessThanOrEqualTo(root.get(filterCriteria.getColumn()), (Comparable) o);
-    }
-
-    private Predicate getGretherThanPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.greaterThan(root.get(filterCriteria.getColumn()), (Comparable) o);
-    }
-
-    private Predicate getGretherEqualPredicate(FilterCriteria filterCriteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(filterCriteria.getValues());
-        Object o = this.getValue(root.get(filterCriteria.getColumn()), filterCriteria.getValues().get(0));
-        return criteriaBuilder.greaterThanOrEqualTo(root.get(filterCriteria.getColumn()), (Comparable) o);
-    }
-
-    private Predicate prepareJoinPredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(criteria.getValues());
-        String[] split = criteria.getColumn().split("_");
-        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
-        String[] columnFields = split[1].split("\\$");
+    private <D> Predicate getMultiValueJoinPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, MultiValuePredicateProvider<D> provider) {
+        String name = criteria.getColumn();
+        Join<Object, Object> joinTable = getJoinTable(root, name);
+        String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(join.get(field)), criteria.getValues().get(0).toLowerCase()));
-            } else {
-                predicates.add(criteriaBuilder.equal(join.get(field), criteria.getValues().get(0).toLowerCase()));
-            }
+        for (String field : joinFields) {
+            final Set<Object> valueSet = criteria.getValues().stream()
+                    .map(value -> getValue(joinTable.get(field), value))
+                    .collect(Collectors.toSet());
+            predicates.add(provider.getPredicate(cb, joinTable.get(field), valueSet));
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    private Predicate prepareJoinInPredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(criteria.getValues());
-        String[] split = criteria.getColumn().split("_");
-        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
-        String[] columnFields = split[1].split("\\$");
+    private <D> Predicate getMultiValuePredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, MultiValuePredicateProvider<D> provider) {
+        String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
-                predicates.add(criteriaBuilder.lower(join.get(field)).in(criteria.getValues().stream().map(String::toLowerCase).toList()));
-            } else {
-                predicates.add(join.get(field).in(criteria.getValues().stream().map(String::toLowerCase).toList()));
-            }
+        for (String field : fields) {
+            final Set<Object> valueSet = criteria.getValues().stream()
+                    .map(value -> getValue(root.get(field), value))
+                    .collect(Collectors.toSet());
+            predicates.add(provider.getPredicate(cb, root.get(field), valueSet));
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    @Deprecated
-    private Predicate prepareJoinLikePredicate(FilterCriteria criteria, Root<T> root, CriteriaBuilder criteriaBuilder) {
-        validateValue(criteria.getValues());
-        String[] split = criteria.getColumn().split("_");
-        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
-        String[] columnFields = split[1].split("\\$");
+    private Predicate getContainJoinPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, PredicateProvider provider) {
+        String name = criteria.getColumn();
+        Join<Object, Object> joinTable = getJoinTable(root, name);
+        String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
-        for (String field : columnFields) {
-            if (Objects.equals(join.get(field).getJavaType().getName(), "java.lang.String")) {
-                criteria.getValues().forEach(value -> predicates.add(criteriaBuilder.like(criteriaBuilder.lower(join.get(field)).as(String.class), getContainsValue(value).toLowerCase())));
-            } else {
-                criteria.getValues().forEach(value -> predicates.add(criteriaBuilder.like(join.get(field).as(String.class), getContainsValue(value).toLowerCase())));
-            }
+        for (String field : joinFields) {
+            criteria.getValues().stream()
+                    .map(value -> provider.getPredicate(cb, joinTable.get(field), value))
+                    .forEach(predicates::add);
         }
-        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
     }
 
-    private Predicate prepareNestedJoinLikePredicate(CriteriaBuilder cb, Root<T> root, FilterCriteria criteria) {
-        validateValue(criteria.getValues());
-        String[] split = criteria.getColumn().split("#");
-        Join<Object, Object> nestedJoin = null;
+    private Predicate getContainPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb, PredicateProvider provider) {
         List<Predicate> predicates = new ArrayList<>();
-        for (String column : split) {
-            String[] columnField = column.split("_");
-            if (nestedJoin == null) {
-                nestedJoin = root.join(columnField[0], JoinType.LEFT);
-            } else {
-                nestedJoin = nestedJoin.join(columnField[0], JoinType.LEFT);
-            }
-            if (columnField.length <= 1) {
-                continue;
-            }
-            String[] columnFields = columnField[1].split("\\$");
-            for (String field : columnFields) {
-                Join<Object, Object> finalNestedJoin = nestedJoin;
-                if (Objects.equals(finalNestedJoin.get(field).getJavaType().getName(), "java.lang.String")) {
-                    criteria.getValues().forEach(value -> predicates.add(cb.like(cb.lower(finalNestedJoin.get(field)).as(String.class), getContainsValue(value).toLowerCase())));
-                } else {
-                    criteria.getValues().forEach(value -> predicates.add(cb.like(finalNestedJoin.get(field).as(String.class), getContainsValue(value).toLowerCase())));
-                }
-            }
+        String[] fields = getFields(criteria.getColumn());
+        for (String field : fields) {
+            criteria.getValues().stream()
+                    .map(value -> provider.getPredicate(cb, root.get(field), value))
+                    .forEach(predicates::add);
         }
-        return cb.or(predicates.toArray(new Predicate[0]));
+        return cb.or(toArray(predicates));
+    }
+
+    private Predicate[] toArray(List<Predicate> predicates) {
+        return predicates.toArray(new Predicate[0]);
     }
 
     private Object getValue(Path<T> path, String value) {
         if (Objects.equals(path.getJavaType().getName(), "java.util.Date")) {
             return new Date(Long.parseLong(value));
         }
+        if (path.getJavaType().isEnum()) {
+            for (T enumConstant : path.getJavaType().getEnumConstants()) {
+                if (enumConstant.toString().equals(value)) {
+                    return enumConstant;
+                }
+            }
+            throw new IllegalArgumentException("Invalid Enum Value");
+        }
         return value;
+    }
+
+    private String getContainsEscValue(final String value) {
+        String newVal = value
+                .replace("\\", "\\\\")
+                .replace("_", "\\_")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace("-", "\\-")
+                .replace("%", "\\%");
+        return "%".concat(newVal).concat("%").toLowerCase();
+    }
+
+    private void validateValue(List<String> values) {
+        if (CollectionUtils.isEmpty(values)) {
+            throw new IllegalArgumentException("value/s require");
+        }
+    }
+
+    private Join<Object, Object> getJoinTable(Root<T> root, String column) {
+        String[] split = column.split(TABLE_FIELD_SEPARATOR);
+        Join<Object, Object> join = root.join(split[0], JoinType.LEFT);
+        for (int i = 1; i < split.length - 1; i++) {
+            join = join.join(split[i], JoinType.LEFT);
+        }
+        return join;
+    }
+
+    private String[] getFields(String name) {
+        String[] split = name.split(TABLE_FIELD_SEPARATOR);
+        return split[split.length - 1].split(FIELD_SEPARATOR);
     }
 }

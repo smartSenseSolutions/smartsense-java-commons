@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.smartsensesolutions.java.commons.base.service;
 
-import com.smartsensesolutions.java.commons.FilterRequest;
 import com.smartsensesolutions.java.commons.base.entity.BaseEntity;
 import com.smartsensesolutions.java.commons.base.repository.BaseRepository;
-import com.smartsensesolutions.java.commons.criteria.CriteriaOperator;
-import com.smartsensesolutions.java.commons.sort.SortType;
+import com.smartsensesolutions.java.commons.filter.FilterRequest;
+import com.smartsensesolutions.java.commons.filter.sort.SortType;
+import com.smartsensesolutions.java.commons.operator.CriteriaOperator;
 import com.smartsensesolutions.java.commons.specification.SpecificationUtil;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,14 +43,14 @@ import java.util.Objects;
 public abstract class BaseService<E extends BaseEntity, ID> {
 
     /**
-     * Method needs to Override by each service which extends BaseService.
+     * Method needs to Override by each service which extends BaseService. It provides Repository of entity type to perform operation
      *
      * @return BaseRepository of @{@link org.springframework.stereotype.Repository} interface.
      */
     protected abstract BaseRepository<E, ID> getRepository();
 
     /**
-     * Method needs to Override by each service which extends BaseService.
+     * Method needs to Override by each service which extends BaseService. It provides Filter functionality for entity class
      *
      * @return Specification of @{@link jakarta.persistence.Entity} class
      */
@@ -59,20 +60,20 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * Method used for save entity.
      *
      * @param newEntity - Indicates the entity that needs to be saved.
-     * @return Entity
+     * @return Newly created or updated entity
      */
     public E create(E newEntity) {
-        return this.getRepository().save(newEntity);
+        return getRepository().save(newEntity);
     }
 
     /**
      * Method used for save entities.
      *
      * @param iterable - Indicates the iterable entities.
-     * @return List of Entity
+     * @return Newly created or updated entities
      */
     public List<E> create(Iterable<E> iterable) {
-        return this.getRepository().saveAll(iterable);
+        return getRepository().saveAll(iterable);
     }
 
     /**
@@ -83,7 +84,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     public E get(ID entityId) {
-        return this.getRepository().findById(entityId).orElse(null);
+        return getRepository().findById(entityId).orElse(null);
     }
 
     /**
@@ -94,7 +95,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     public List<E> get(Iterable<ID> entityIds) {
-        return this.getRepository().findAllById(entityIds);
+        return getRepository().findAllById(entityIds);
     }
 
     /**
@@ -104,7 +105,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     public List<E> getAll() {
-        return this.getRepository().findAll();
+        return getRepository().findAll();
     }
 
     /**
@@ -113,7 +114,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @param entityId - Indicates the EntityId
      */
     public void delete(ID entityId) {
-        this.getRepository().deleteById(entityId);
+        getRepository().deleteById(entityId);
     }
 
     /**
@@ -122,8 +123,9 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @param entityId - Indicates the entityId
      * @return boolean
      */
+    @Transactional(readOnly = true)
     public boolean existsById(ID entityId) {
-        return this.getRepository().existsById(entityId);
+        return getRepository().existsById(entityId);
     }
 
     /**
@@ -134,79 +136,39 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      */
     @Transactional(readOnly = true)
     public Page<E> filter(FilterRequest filter) {
-        return this.filter(this.getSpecificationFromFilterRequest(filter), filter);
+        return filter(getSpecificationFromFilterRequest(filter), filter);
     }
 
     /**
-     * Method used for generate Page response based on the given FilterRequest.
+     * Method used for generate Page response based on the given FilterRequest and specification.
      *
      * @param specification - Indicates the custom specification that needs to apply.
-     * @param filter        - Indicates the FilterRequest
+     * @param filter        - Indicates the FilterRequest used to get page and sort parameters, not the criteria
+     *                      parameters
      * @return Page of Entity
      */
     @Transactional(readOnly = true)
-    public Page<E> filter(Specification<E> specification, FilterRequest filter) {
+    private Page<E> filter(Specification<E> specification, FilterRequest filter) {
         try {
-            PageRequest pageRequest = this.getPageRequest(filter);
-            if (Objects.isNull(filter.getCriteria()) || filter.getCriteria().isEmpty()) {
-                return this.getRepository().findAll(pageRequest);
+            PageRequest pageRequest = getPageRequest(filter);
+            if (Objects.isNull(specification)) {
+                return getRepository().findAll(pageRequest);
             }
-            return this.getRepository().findAll(specification, pageRequest);
+            return getRepository().findAll(specification, pageRequest);
         } catch (InvalidDataAccessApiUsageException ex) {
             throw new IllegalArgumentException("field type not support operator or value", ex);
         }
     }
 
     /**
-     * Method used for generate page response based on the search and default filter request.
-     *
-     * @param searchRequest  - Indicates the Search Filter Request
-     * @param defaultRequest - Indicates the Default Filter Request
-     * @param operator       - Indicates the Criteria operator that will use between these requests.
-     * @return Page of Entity
-     */
-    @Transactional(readOnly = true)
-    public Page<E> filter(FilterRequest searchRequest, FilterRequest defaultRequest, CriteriaOperator operator) {
-        Specification<E> searchSpecification = this.getSpecificationFromFilterRequest(searchRequest);
-        if (Objects.isNull(searchSpecification)) {
-            Specification<E> defaultSpecification = this.getSpecificationFromFilterRequest(defaultRequest);
-            if (Objects.isNull(defaultSpecification)) {
-                return this.getRepository().findAll(this.getPageRequest(searchRequest));
-            }
-            return this.filter(defaultSpecification, defaultRequest);
-        }
-        searchSpecification = this.appendDefaultCriteriaWithSearchCriteria(searchSpecification, defaultRequest, operator);
-        return this.filter(searchSpecification, searchRequest);
-    }
-
-    /**
-     * Method used for append default criteria with search criteria
-     *
-     * @param searchSpecification - Indicates the search specification
-     * @param defaultRequest      - Indicates the default Filter request
-     * @param operator            - Indicates the operator
-     * @return Specification of Entity
-     */
-    private Specification<E> appendDefaultCriteriaWithSearchCriteria(Specification<E> searchSpecification, FilterRequest defaultRequest, CriteriaOperator operator) {
-        Specification<E> defaultSpecification = this.getSpecificationFromFilterRequest(defaultRequest);
-        if (Objects.nonNull(defaultSpecification) && Objects.nonNull(operator) && operator.equals(CriteriaOperator.AND)) {
-            searchSpecification = searchSpecification.and(defaultSpecification);
-        }
-        if (Objects.nonNull(defaultSpecification) && Objects.nonNull(operator) && operator.equals(CriteriaOperator.OR)) {
-            searchSpecification = searchSpecification.or(defaultSpecification);
-        }
-        return searchSpecification;
-    }
-
-    /**
      * Method used for fetch count based on the FilterRequest.
      *
-     * @param request - Indicates the FilterRequest.
+     * @param filter - Indicates the FilterRequest.
      * @return Long
      */
     @Transactional(readOnly = true)
-    public long count(FilterRequest request) {
-        return this.count(this.getSpecificationFromFilterRequest(request));
+    public long count(FilterRequest filter) {
+        return count(getSpecificationFromFilterRequest(filter));
     }
 
     /**
@@ -215,29 +177,9 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @param specification - Indicates the specification.
      * @return Long
      */
+    @Transactional(readOnly = true)
     public long count(Specification<E> specification) {
-        return this.getRepository().count(specification);
-    }
-
-    /**
-     * Method used for fetch count based on the search and default filter request.
-     *
-     * @param searchRequest  - Indicates the Search Filter Request
-     * @param defaultRequest - Indicates the Default Filter Request
-     * @param operator       - Indicates the Criteria operator that will use between these requests.
-     * @return Long
-     */
-    public long count(FilterRequest searchRequest, FilterRequest defaultRequest, CriteriaOperator operator) {
-        Specification<E> searchSpecification = this.getSpecificationFromFilterRequest(searchRequest);
-        if (Objects.isNull(searchSpecification)) {
-            Specification<E> defaultSpecification = this.getSpecificationFromFilterRequest(defaultRequest);
-            if (Objects.isNull(defaultSpecification)) {
-                return this.getRepository().count();
-            }
-            return this.count(defaultSpecification);
-        }
-        searchSpecification = this.appendDefaultCriteriaWithSearchCriteria(searchSpecification, defaultRequest, operator);
-        return this.getRepository().count(searchSpecification);
+        return getRepository().count(specification);
     }
 
     /**
@@ -247,13 +189,22 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @return Specification of Entity
      */
     private Specification<E> getSpecificationFromFilterRequest(FilterRequest request) {
-        if (Objects.isNull(request.getCriteria()) || request.getCriteria().isEmpty()) {
+        if (CollectionUtils.isEmpty(request.getCriteria())) {
             return null;
         }
-        if (Objects.isNull(request.getCriteriaOperator()) || request.getCriteriaOperator().equals(CriteriaOperator.AND)) {
-            return this.getSpecificationUtil().generateSpecification(request.getCriteria());
+        if (CollectionUtils.isEmpty(request.getOrCriteria())) {
+            if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
+                return getSpecificationUtil().generateOrSpecification(request.getCriteria());
+            }
+            return getSpecificationUtil().generateAndSpecification(request.getCriteria());
+        } else {
+            Specification<E> and = getSpecificationUtil().generateAndSpecification(request.getCriteria());
+            Specification<E> or = getSpecificationUtil().generateOrSpecification(request.getOrCriteria());
+            if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
+                return and.or(or);
+            }
+            return and.and(or);
         }
-        return this.getSpecificationUtil().generateOrSpecification(request.getCriteria());
     }
 
     /**
@@ -266,11 +217,19 @@ public abstract class BaseService<E extends BaseEntity, ID> {
         if (filter.getSize() <= 0) {
             filter.setSize(Integer.MAX_VALUE);
         }
-        if (Objects.isNull(filter.getSort())) {
-            return PageRequest.of(filter.getPage(), filter.getSize());
+        Sort sort = Sort.unsorted();
+        if (!CollectionUtils.isEmpty(filter.getSort())) {
+            List<Sort.Order> orders = filter.getSort().stream().map(this::toSQLSort).toList();
+            sort = Sort.by(orders);
         }
-        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(filter.getSort().getSortType() == SortType.ASC ? org.springframework.data.domain.Sort.Direction.ASC : Sort.Direction.DESC, filter.getSort().getColumn().split(","));
         return PageRequest.of(filter.getPage(), filter.getSize(), sort);
     }
 
+    private Sort.Order toSQLSort(com.smartsensesolutions.java.commons.filter.sort.Sort sort) {
+        if (sort.getSortType().equals(SortType.ASC)) {
+            return Sort.Order.asc(sort.getColumn());
+        } else {
+            return Sort.Order.desc(sort.getColumn());
+        }
+    }
 }

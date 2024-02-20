@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * All supported operators.
+ * All supported conditional operators for criteria.
  */
 @AllArgsConstructor
 @Getter
 public enum Operator {
 
     CONTAIN("like"),
+    CONTAIN_WITH_WILDCARD("like_with_wildcard"),
     NOT_CONTAIN("!like"),
+    NOT_CONTAIN_WITH_WILDCARD("!like_with_wildcard"),
     EQUALS("="),
     NOT_EQUAL("!="),
     IN("in"),
@@ -42,12 +44,7 @@ public enum Operator {
     TRUE("is_true"),
     FALSE("is_false"),
     NULL("is_null"),
-    NOT_NULL("!is_null"),
-    JOIN_EQUALS("join_eq"),
-    JOIN_IN("join_in"),
-    @Deprecated
-    JOIN_LIKE("join_like"),
-    JOIN_NESTED("join_nested");
+    NOT_NULL("!is_null");
 
     private static final Map<String, Operator> map = new HashMap<>();
     private final String operatorValue;

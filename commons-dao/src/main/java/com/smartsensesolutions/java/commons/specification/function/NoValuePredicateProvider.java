@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.smartsensesolutions.java.commons.specification.function;
 
-package com.smartsensesolutions.java.commons.sort;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 
 /**
- * All supported sort types.
+ * No value Predicate Provider
+ *
+ * @param <D> Field data type
+ * @author Sunil Kanzar
+ * @since 20th Fab 2024
  */
-@AllArgsConstructor
-@Getter
-public enum SortType {
-
-    NONE("none"), ASC("asc"), DESC("desc");
-    private final String value;
+@FunctionalInterface
+public interface NoValuePredicateProvider<D> {
+    Predicate getPredicate(CriteriaBuilder criteriaBuilder, Path<D> path);
 }
