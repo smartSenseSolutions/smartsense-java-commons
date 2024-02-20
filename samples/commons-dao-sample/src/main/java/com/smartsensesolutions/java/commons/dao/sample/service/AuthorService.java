@@ -1,6 +1,5 @@
 package com.smartsensesolutions.java.commons.dao.sample.service;
 
-import com.smartsensesolutions.java.commons.FilterRequest;
 import com.smartsensesolutions.java.commons.base.repository.BaseRepository;
 import com.smartsensesolutions.java.commons.base.service.BaseService;
 import com.smartsensesolutions.java.commons.dao.sample.entity.Author;
@@ -9,6 +8,7 @@ import com.smartsensesolutions.java.commons.dao.sample.repository.AuthorReposito
 import com.smartsensesolutions.java.commons.dao.sample.repository.BooksRepository;
 import com.smartsensesolutions.java.commons.dao.sample.request.AuthorRequest;
 import com.smartsensesolutions.java.commons.dao.sample.request.BookRequest;
+import com.smartsensesolutions.java.commons.filter.FilterRequest;
 import com.smartsensesolutions.java.commons.specification.SpecificationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;

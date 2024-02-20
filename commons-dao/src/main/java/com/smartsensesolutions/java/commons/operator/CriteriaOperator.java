@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 smartSense Consulting Solutions Pvt. Ltd
+ * Copyright 2024 smartSense Consulting Solutions Pvt. Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.smartsensesolutions.java.commons.criteria;
+package com.smartsensesolutions.java.commons.operator;
 
 /**
- * CriteriaOperator indicates the supported criteria for JPA queries.
+ * CriteriaOperator indicates logical operator to join criteria or list of criteria from {@code FilterRequest}
  */
 public enum CriteriaOperator {
-    AND, OR
+    AND,
+    OR
 }
