@@ -444,7 +444,7 @@ deployment
 
 [er-diagram]: ref/er-diagram.png
 
-[smartsensesolutions-commons-dao]: ../../../smartsense-java-commons
+[smartsensesolutions-commons-dao]: ../../
 
 [FilterRequest]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/FilterRequest.java
 
