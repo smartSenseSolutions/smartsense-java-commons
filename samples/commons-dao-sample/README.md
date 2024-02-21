@@ -57,8 +57,8 @@ Table: [FilterRequest] Description
 | `size`             | `int`              | How many rows you want retrieve in page, You can pass `Integer.MAX_VALUE` with `page=0` to get all record |
 | `criteriaOperator` | `CriteriaOperator` | All the criteria will joined with this [logical operator]                                                 |
 | `sort`             | `List<Sort>`       | It is and array field for order by                                                                        |
-| `criteria`         | `List<Criteria>`   | List of condition joined with `criteriaOperator` or in special case with `And` Operator                   |
-| `orCriteria`       | `List<Criteria>`   | List of condition with `Or` Operator                                                                      |
+| `criteria`         | `List<Criteria>`   | List of condition joined with `criteriaOperator` or in special case with `AND` Operator                   |
+| `orCriteria`       | `List<Criteria>`   | List of condition with `OR` Operator                                                                      |
 
 Table: [Sort] Description
 
@@ -456,6 +456,6 @@ deployment
 
 [Operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/operator/Operator.java
 
-[logical operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/Criteria.java
+[logical operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/operator/CriteriaOperator.java
 
 [Open API]: http://localhost:8080/ui/swagger-ui/index.html#
