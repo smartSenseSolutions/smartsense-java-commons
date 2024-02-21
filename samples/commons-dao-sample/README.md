@@ -378,7 +378,7 @@ deployment
         }
         ```
 
-    10. Combine `And` and `Or` criteria On Author
+    10. Combine `AND` and `OR` criteria On Author
         ```json
         {
         	"page": 0,
