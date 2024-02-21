@@ -1,13 +1,12 @@
 # Commons-Dao Sample
 
-This is a sample repository that offers a simplified implementation of
-the [smartsensesolutions-commons-dao](https://github.com/smartSenseSolutions/smartsense-java-commons) repository.
+This is a sample repository that offers a simplified implementation of the [smartsensesolutions-commons-dao] repository.
 The sample repository includes implementations for Books and Authors, showcasing how
-the [smartsensesolutions-commons-dao](https://github.com/smartSenseSolutions/smartsense-java-commons) can facilitate the
-search functionality.
+the [smartsensesolutions-commons-dao] can facilitate the search functionality.
 
 Entity Relationship Diagram:
-![ER-Diagram](ref/er-diagram.png)
+
+![er-diagram]
 
 By utilizing the specification utils provided, it becomes effortless to implement pagination, sorting and filtering with
 different type of conditional operators and create various types of queries by just passing the parameters.
@@ -50,68 +49,64 @@ in inheritance from the 'BaseService' along with many other useful methods like 
 This the request you need to pass to filter dynamically
 there are six properties in it.
 
-Table: [FilterRequest](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/FilterRequest.java)
-Description
+Table: [FilterRequest] Description
 
-| Property         | Type             | Description                                                                                                                                                                                                                         | 
-|------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| page             | int              | Which page you want to retrieve, it starts with 0, **0 means first page**                                                                                                                                                           |
-| size             | int              | How many rows you want retrieve in page, You can pass `Integer.MAX_VALUE` with `page=0` to get all record                                                                                                                           |
-| criteriaOperator | CriteriaOperator | All the criteria will joined with this [logical operator](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/criteria/CriteriaOperator.java) |
-| sort             | `List<Sort>`     | It is and array field for order by                                                                                                                                                                                                  |
-| criteria         | `List<Criteria>` | List of condition joined with `criteriaOperator` or in special case with `And` Operator                                                                                                                                             |
-| orCriteria       | `List<Criteria>` | List of condition with `Or` Operator                                                                                                                                                                                                |
+| Property           | Type               | Description                                                                                               | 
+|--------------------|--------------------|-----------------------------------------------------------------------------------------------------------|
+| `page`             | `int`              | Which page you want to retrieve, it starts with `0`, **`0` means first page**                             |
+| `size`             | `int`              | How many rows you want retrieve in page, You can pass `Integer.MAX_VALUE` with `page=0` to get all record |
+| `criteriaOperator` | `CriteriaOperator` | All the criteria will joined with this [logical operator]                                                 |
+| `sort`             | `List<Sort>`       | It is and array field for order by                                                                        |
+| `criteria`         | `List<Criteria>`   | List of condition joined with `criteriaOperator` or in special case with `And` Operator                   |
+| `orCriteria`       | `List<Criteria>`   | List of condition with `Or` Operator                                                                      |
 
-Table: [Sort](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/sort/Sort.java)
-Description
+Table: [Sort] Description
 
-| Property | Type     | Description                                                                                                                                                                                         | 
-|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| column   | String   | Column name on which you want to sort                                                                                                                                                               |
-| sortType | SortType | On which [direction](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/sort/SortType.java) you want to sort |
+| Property   | Type       | Description                           | 
+|------------|------------|---------------------------------------|
+| `column`   | `String`   | Column name on which you want to sort |
+| `sortType` | `SortType` | On which [direction] you want to sort |
 
-Table: [Criteria](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/FilterCriteria.java)
-Description
+Table: [Criteria] Description
 
-| Property | Type           | Description                                                                                                                                                                              | 
-|----------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| column   | String         | Column name on which you want filter, This field hase some separator like '.' separates join table entity ',' separates two field if condition in the two fields                         |
-| operator | Operator       | Conditional [Operator](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/operator/Operator.java) |
-| values   | `List<String>` | List of value for the condition, in some case it will take first value in list if operator don't support multiple value for some it will not take any value at all                       |
+| Property   | Type           | Description                                                                                                                                                        | 
+|------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `column`   | `String`       | Column name on which you want filter, This field hase some separator like `.` separates join table entity `,` separates two field if condition in the two fields   |
+| `operator` | `Operator`     | Conditional [Operator]                                                                                                                                             |
+| `values`   | `List<String>` | List of value for the condition, in some case it will take first value in list if operator don't support multiple value for some it will not take any value at all |
 
 ### Supported Operators
 
-Table: [Operator](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/commons-dao/src/main/java/com/smartsensesolutions/java/commons/operator/Operator.java)
-Description
+Table: [Operator] Description
 
-| Operator                  | Supported Value   | Description                                                                                                                                                                                                                                                                                 | 
-|---------------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| CONTAIN                   | Multiple Value    | It will search from fields by converting it to string and case insensitively, it supports multiple value and join it with or operator, enum will also supported if it is stored with String value liek `@Enumerated(EnumType.STRING)`. SQL Wildcard character will be escaped before search |
-| CONTAIN_WITH_WILDCARD     | Multiple Value    | Same as `CONTAIN` but it will accept **like supported SQL pattern**                                                                                                                                                                                                                         |
-| NOT_CONTAIN               | Multiple Value    | Same as `CONTAIN` operator with `NOT` logical operation                                                                                                                                                                                                                                     |
-| NOT_CONTAIN_WITH_WILDCARD | Multiple Value    | Same as `NOT_CONTAIN` but it will accept **like supported SQL pattern**                                                                                                                                                                                                                     |
-| EQUALS                    | Single Value      | It is an implementation of `=` operator of SQL, make sure you pass appropriate datatype as par the field in string form same goes for enum too                                                                                                                                              |
-| NOT_EQUAL                 | Single Value      | Same as `EQUALS` operator with `NOT` logical operation                                                                                                                                                                                                                                      |
-| IN                        | Multiple Value    | It is an implementation of `in` operator, data type sensitiv                                                                                                                                                                                                                                |
-| NOT_IN                    | Multiple Value    | Same as `IN` operator with `NOT` logical operation                                                                                                                                                                                                                                          |
-| GREATER_THAN              | Single Value      | It is an implementation of `>` operator, data type sensitiv, Works with enum if you stored it as a number like `@Enumerated(EnumType.ORDINAL)`, works for `Date` too                                                                                                                        |
-| LESSER_THAN               | Single Value      | It is an implementation of `<` operator, data type support will be same as `GREATER_THAN`                                                                                                                                                                                                   |
-| GREATER_EQUALS            | Single Value      | Same as `GREATER_THAN`, Inclusive for current value                                                                                                                                                                                                                                         |
-| LESSER_EQUALS             | Single Value      | Same as `LESSER_THAN`, Inclusive for current value                                                                                                                                                                                                                                          |
-| TRUE                      | No value Required | Implementation of `is true` SQL operator, Only works for boolean data type return                                                                                                                                                                                                           |
-| FALSE                     | No value Required | Implementation of `is false` SQL operator, Only works for boolean data type return                                                                                                                                                                                                          |
-| NULL                      | No value Required | Implementation of `is null` SQL operator, Will check for null values                                                                                                                                                                                                                        |
-| NOT_NULL                  | No value Required | Implementation of `is not null` SQL operator, Will check for non null values                                                                                                                                                                                                                |
+| Operator                    | Supported Value   | Description                                                                                                                                                                                                                                                                                 | 
+|-----------------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `CONTAIN`                   | Multiple Value    | It will search from fields by converting it to string and case insensitively, it supports multiple value and join it with or operator, enum will also supported if it is stored with String value liek `@Enumerated(EnumType.STRING)`. SQL Wildcard character will be escaped before search |
+| `CONTAIN_WITH_WILDCARD`     | Multiple Value    | Same as `CONTAIN` but it will accept **like supported SQL pattern**                                                                                                                                                                                                                         |
+| `NOT_CONTAIN`               | Multiple Value    | Same as `CONTAIN` operator with `NOT` logical operation                                                                                                                                                                                                                                     |
+| `NOT_CONTAIN_WITH_WILDCARD` | Multiple Value    | Same as `NOT_CONTAIN` but it will accept **like supported SQL pattern**                                                                                                                                                                                                                     |
+| `EQUALS`                    | Single Value      | It is an implementation of `=` operator of SQL, make sure you pass appropriate datatype as par the field in string form same goes for enum too                                                                                                                                              |
+| `NOT_EQUAL`                 | Single Value      | Same as `EQUALS` operator with `NOT` logical operation                                                                                                                                                                                                                                      |
+| `IN`                        | Multiple Value    | It is an implementation of `in` operator, data type sensitiv                                                                                                                                                                                                                                |
+| `NOT_IN`                    | Multiple Value    | Same as `IN` operator with `NOT` logical operation                                                                                                                                                                                                                                          |
+| `GREATER_THAN`              | Single Value      | It is an implementation of `>` operator, data type sensitiv, Works with enum if you stored it as a number like `@Enumerated(EnumType.ORDINAL)`, works for `Date` too                                                                                                                        |
+| `LESSER_THAN`               | Single Value      | It is an implementation of `<` operator, data type support will be same as `GREATER_THAN`                                                                                                                                                                                                   |
+| `GREATER_EQUALS`            | Single Value      | Same as `GREATER_THAN`, Inclusive for current value                                                                                                                                                                                                                                         |
+| `LESSER_EQUALS`             | Single Value      | Same as `LESSER_THAN`, Inclusive for current value                                                                                                                                                                                                                                          |
+| `TRUE`                      | No value Required | Implementation of `is true` SQL operator, Only works for boolean data type return                                                                                                                                                                                                           |
+| `FALSE`                     | No value Required | Implementation of `is false` SQL operator, Only works for boolean data type return                                                                                                                                                                                                          |
+| `NULL`                      | No value Required | Implementation of `is null` SQL operator, Will check for null values                                                                                                                                                                                                                        |
+| `NOT_NULL`                  | No value Required | Implementation of `is not null` SQL operator, Will check for non null values                                                                                                                                                                                                                |
 
-### How to pass value
+### What to pass as a `values`
 
-| Type     | Example            | Description                                                                       | 
-|----------|--------------------|-----------------------------------------------------------------------------------|
-| `String` | "Street no-5"      | Any Character string. Number, Alphabet and Symbol                                 |
-| Pattern  | "_a%"              | Valid pattern for `like` SQL operator                                             |
-| `Number` | "153"<br>"12.6"    | Any Number or fractional number as a String                                       |
-| `Date`   | "1708414144205"    | `Long` timestamp as String                                                        |
-| `eunm`   | "OnLine"<br>"Away" | Name of this enum constant as String. It should match with entity field data type |
+| Type     | Example            | Description                                                                         | 
+|----------|--------------------|-------------------------------------------------------------------------------------|
+| `String` | "Street no-5"      | Any Character string. Number, Alphabet and Symbol                                   |
+| Pattern  | "_a%"              | Valid pattern for `like` SQL operator                                               |
+| `Number` | "153"<br>"12.6"    | Any Number or fractional number as a String                                         |
+| `Date`   | "1708414144205"    | `Long` timestamp as String                                                          |
+| `eunm`   | "OnLine"<br>"Away" | Name of this `enum` constant as String. It should match with entity field data type |
 
 ## Sample Project Description
 
@@ -121,8 +116,8 @@ the common-dao package.
 Note: Data creation is not necessary as this project automatically creates the table and generate sample data in
 database directly by just passing the DB connection configuration
 
-You can see all the endpoints with [Open API](http://localhost:8080/ui/swagger-ui/index.html#) after
-running the Application. Host might be different as par your deployment
+You can see all the endpoints with [Open API] after running the Application. Host might be different as par your
+deployment
 
 1. Create new data
 
@@ -233,7 +228,7 @@ running the Application. Host might be different as par your deployment
         SELECT * FROM author where active is false offset 0 limit 5;
         ```
 
-    5. Search author with **or** `criteriaOperator'
+    5. Search author with **or** `criteriaOperator`
         ```json
         {
             "page": 0,
@@ -434,7 +429,7 @@ running the Application. Host might be different as par your deployment
         }
         ```
         Note: here in this case where we pass `criteria` and `orCriteria`. So, all the elements in `criteria` list will
-        be logicaly joind with `AND` Operator, all the elements in `orCriteria` will be logically joined by `OR`
+        be logically joined with `AND` Operator, all the elements in `orCriteria` will be logically joined by `OR`
         Operator and value in the `criteriaOperator` will be used to join `criteria` and `orCriteria`.
 
         Pseudocode for where condition is like:
@@ -446,3 +441,21 @@ running the Application. Host might be different as par your deployment
             (books.bookName like "%java%" or address.street like "%5%")
         ...;
         ```
+
+[er-diagram]: ref/er-diagram.png
+
+[smartsensesolutions-commons-dao]: ../../../smartsense-java-commons
+
+[FilterRequest]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/FilterRequest.java
+
+[Sort]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/sort/Sort.java
+
+[direction]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/sort/SortType.java
+
+[Criteria]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/Criteria.java
+
+[Operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/operator/Operator.java
+
+[logical operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/java/commons/filter/Criteria.java
+
+[Open API]: http://localhost:8080/ui/swagger-ui/index.html#
