@@ -16,6 +16,7 @@
 
 package com.smartsensesolutions.java.commons.specification;
 
+import com.smartsensesolutions.java.commons.base.entity.BaseEntity;
 import com.smartsensesolutions.java.commons.filter.FilterCriteria;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  * @param <T> - Indicates @{@link jakarta.persistence.Entity} class.
  */
 @Component
-public class SpecificationUtil<T> {
+public class SpecificationUtil<T extends BaseEntity> {
     private static String getContainsValue(String value) {
         return "%".concat(value).concat("%");
     }
