@@ -22,18 +22,12 @@ import java.util.List;
 public class AuthorService extends BaseService<Author, Long> {
     private final AuthorRepository authorRepository;
     private final BooksRepository booksRepository;
-    private final SpecificationUtil<Author> specificationUtil;
 
     @Override
     protected BaseRepository<Author, Long> getRepository() {
         return authorRepository;
     }
-
-    @Override
-    protected SpecificationUtil<Author> getSpecificationUtil() {
-        return specificationUtil;
-    }
-
+	
     public Page<Author> searchBasedOnPagination(FilterRequest request) {
         return filter(request);
     }
