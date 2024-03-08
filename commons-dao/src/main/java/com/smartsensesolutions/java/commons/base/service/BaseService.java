@@ -51,9 +51,11 @@ public abstract class BaseService<E extends BaseEntity, ID> {
     /**
      * Method needs to Override by each service which extends BaseService.
      *
-     * @return Specification of @{@link jakarta.persistence.Entity} class
+     * @return Specification of @{@link BaseEntity} class
      */
-    protected abstract SpecificationUtil<E> getSpecificationUtil();
+    protected SpecificationUtil<E> getSpecificationUtil(){
+		return new SpecificationUtil<>();
+	};
 
     /**
      * Method used for save entity.
