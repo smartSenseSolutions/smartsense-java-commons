@@ -11,9 +11,4 @@ public class CommonsDaoSampleApplication {
     public static void main(String[] args) {
         SpringApplication.run(CommonsDaoSampleApplication.class, args);
     }
-
-    @Bean
-    public SpecificationUtil specificationUtil() {
-        return new SpecificationUtil();
-    }
 }

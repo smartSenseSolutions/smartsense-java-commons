@@ -11,7 +11,7 @@ queries.
 Here we use Gradle as the build tool and for that we used below dependency with in our build.gradle file.
 
 ```
-implementation group: 'com.smartsensesolutions', name: 'commons-dao', version: '0.0.2'
+implementation group: 'com.smartsensesolutions', name: 'commons-dao', version: '0.0.12'
 ```
 
 Each `Entity`, `Repository` and '`Service` class must be extend with the `BaseEntity`, `BaseRepository`
@@ -76,8 +76,8 @@ curl --location '::8080/create/books' \
          ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
+       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
        where a1_0.author_name=? offset ? rows fetch first ? rows only
        ```
 
@@ -99,8 +99,8 @@ curl --location '::8080/create/books' \
          ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
+       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
        where (cast(a1_0.author_name as text) like ? escape '') offset ? rows fetch first ? rows only
        ```
 
@@ -119,11 +119,11 @@ curl --location '::8080/create/books' \
              }
            ]
          }
-         ``` 
+         ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
+       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
        where a1_0.age=? offset ? rows fetch first ? rows only
        ```
 
@@ -152,10 +152,10 @@ curl --location '::8080/create/books' \
         ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
-       join (public.author_books_mapping b1_0 join public.books b1_1 
-            on b1_1.id=b1_0.book_id) on a1_0.id=b1_0.author_id 
+       select a1_0.id,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
+       join (public.author_books_mapping b1_0 join public.books b1_1
+            on b1_1.id=b1_0.book_id) on a1_0.id=b1_0.author_id
        where (cast(a1_0.author_name as text) like ? escape '') and b1_1.book_name=? offset ? rows fetch first ? rows only
        ```
 
@@ -174,8 +174,8 @@ curl --location '::8080/create/books' \
         ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.active,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
+       select a1_0.id,a1_0.active,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
        where a1_0.active offset ? rows fetch first ? rows only
        ```
     7. Search Books based on the BookName with active author with `OR` criteriaOperator. (Default criteriaOperator is
@@ -202,9 +202,9 @@ curl --location '::8080/create/books' \
         ```
        Prepared Query by Specification utils,
        ```
-       select a1_0.id,a1_0.active,a1_0.age,a1_0.author_name,a1_0.created_at 
-       from public.author a1_0 
-       left join (public.author_books_mapping b1_0 join public.books b1_1 on b1_1.id=b1_0.book_id) 
-       on a1_0.id=b1_0.author_id 
+       select a1_0.id,a1_0.active,a1_0.age,a1_0.author_name,a1_0.created_at
+       from public.author a1_0
+       left join (public.author_books_mapping b1_0 join public.books b1_1 on b1_1.id=b1_0.book_id)
+       on a1_0.id=b1_0.author_id
        where a1_0.active or cast(b1_1.book_name as text) like ? escape '' offset ? rows fetch first ? rows only
        ```
