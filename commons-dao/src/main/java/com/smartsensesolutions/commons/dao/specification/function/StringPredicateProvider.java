@@ -22,7 +22,6 @@ import jakarta.persistence.criteria.Predicate;
 /**
  * Predicate Provider
  *
- * @param <T> Field data type
  * @author Sunil Kanzar
  * @since 20th Fab 2024
  */
