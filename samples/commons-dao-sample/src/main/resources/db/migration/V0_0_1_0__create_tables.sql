@@ -78,15 +78,15 @@ VALUES
 
 INSERT INTO author(id, author_name, age, active, created_at, address_id, status, "level")
 VALUES
-(1,'John Doe',25,true, now(), 1, 'OnLine', 0),
-(2,'Zimple Eriksen',26,true, now(), 2, 'OffLine', 1),
-(3,'Yeo Miller',26,false, now(), 3, 'Away', 1),
-(4,'Yurky Anderson',16,true, now(), 4, 'OnLine', 2),
+(1,'John Doe',25,true, now(), 1, 'ONLINE', 0),
+(2,'Zimple Eriksen',26,true, now(), 2, 'OFFLINE', 1),
+(3,'Yeo Miller',26,false, now(), 3, 'AWAY', 1),
+(4,'Yurky Anderson',16,true, now(), 4, 'ONLINE', 2),
 (5,'Yurky Thomson',19,true, now(), 5, 'DND', 0),
-(6,'Zastrow Olsson',26,true, now(), 6, 'NoCall', 3),
-(7,'Ziemer Miller',25,true, now(), 7, 'NoCall', 0),
-(8,'Ramesh Purohit',12,true, now(), 8, 'OnLine', 3),
-(9,'Kanji Varma',64,true, now(), 9, 'OffLine', 3);
+(6,'Zastrow Olsson',26,true, now(), 6, 'ON_CALL', 3),
+(7,'Ziemer Miller',25,true, now(), 7, 'ON_CALL', 0),
+(8,'Ramesh Purohit',12,true, now(), 8, 'ONLINE', 3),
+(9,'Kanji Varma',64,true, now(), 9, 'OFFLINE', 3);
 
 INSERT INTO books(id, book_name, description, active, created_at)
 VALUES

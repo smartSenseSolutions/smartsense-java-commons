@@ -1,9 +1,9 @@
 package com.smartsensesolutions.commons.dao.sample.entity;
 
 public enum EActivityStatus {
-    OnLine,
-    NoCall,
-    Away,
-    OffLine,
+    ONLINE,
+    ON_CALL,
+    AWAY,
+    OFFLINE,
     DND
 }

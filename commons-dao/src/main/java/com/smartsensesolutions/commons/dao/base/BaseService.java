@@ -35,17 +35,17 @@ import java.util.Objects;
 /**
  * Each @{@link org.springframework.stereotype.Service} must be extended with BaseService.
  *
- * @param <E>  - Indicates the @{@link jakarta.persistence.Entity} class.
- * @param <ID> - Indicates the @{@link jakarta.persistence.Id} column from entity class.
+ * @param <E> - Indicates the @{@link jakarta.persistence.Entity} class.
+ * @param <I> - Indicates the @{@link jakarta.persistence.Id} column from entity class.
  */
-public abstract class BaseService<E extends BaseEntity, ID> {
+public abstract class BaseService<E extends BaseEntity, I> {
 
     /**
      * Method needs to Override by each service which extends BaseService. It provides Repository of entity type to perform operation
      *
      * @return BaseRepository of @{@link org.springframework.stereotype.Repository} interface.
      */
-    protected abstract BaseRepository<E, ID> getRepository();
+    protected abstract BaseRepository<E, I> getRepository();
 
     /**
      * Method needs to Override by each service which extends BaseService. It provides Filter functionality for entity class
@@ -83,7 +83,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @return Entity
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
-    public E get(ID entityId) {
+    public E get(I entityId) {
         return getRepository().findById(entityId).orElse(null);
     }
 
@@ -94,7 +94,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @return List of Entity
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
-    public List<E> get(Iterable<ID> entityIds) {
+    public List<E> get(Iterable<I> entityIds) {
         return getRepository().findAllById(entityIds);
     }
 
@@ -113,7 +113,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      *
      * @param entityId - Indicates the EntityId
      */
-    public void delete(ID entityId) {
+    public void delete(I entityId) {
         getRepository().deleteById(entityId);
     }
 
@@ -124,7 +124,7 @@ public abstract class BaseService<E extends BaseEntity, ID> {
      * @return boolean
      */
     @Transactional(readOnly = true)
-    public boolean existsById(ID entityId) {
+    public boolean existsById(I entityId) {
         return getRepository().existsById(entityId);
     }
 

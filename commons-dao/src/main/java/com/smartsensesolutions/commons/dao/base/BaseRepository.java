@@ -25,11 +25,11 @@ import org.springframework.data.repository.NoRepositoryBean;
 /**
  * Each @{@link org.springframework.data.repository.Repository} must be extended with BaseRepository.
  *
- * @param <T>  - Indicates the @{@link jakarta.persistence.Entity} class.
- * @param <ID> - Indicates the @{@link jakarta.persistence.Id} column from entity class.
+ * @param <T> - Indicates the @{@link jakarta.persistence.Entity} class.
+ * @param <I> - Indicates the @{@link jakarta.persistence.Id} column from entity class.
  */
 @NoRepositoryBean
-public interface BaseRepository<T extends BaseEntity, ID> extends JpaRepository<T, ID> {
+public interface BaseRepository<T extends BaseEntity, I> extends JpaRepository<T, I> {
 
     /**
      * Method used for fetch all elements from the entity class.
