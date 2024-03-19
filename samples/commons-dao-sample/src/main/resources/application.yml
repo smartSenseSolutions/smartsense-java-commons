@@ -16,3 +16,13 @@ spring:
   flyway:
     enabled: true
     schemas: public
+
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+    path: /ui/swagger-ui
+    show-common-extensions: true
+    csrf:
+      enabled: true
+  api-docs:
+    path: /docs/api-docs
