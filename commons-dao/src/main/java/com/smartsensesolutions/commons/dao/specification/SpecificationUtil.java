@@ -18,7 +18,6 @@ package com.smartsensesolutions.commons.dao.specification;
 
 import com.smartsensesolutions.commons.dao.base.BaseEntity;
 import com.smartsensesolutions.commons.dao.filter.Criteria;
-import com.smartsensesolutions.commons.dao.operator.Operator;
 import com.smartsensesolutions.commons.dao.specification.function.MultiValuePredicateProvider;
 import com.smartsensesolutions.commons.dao.specification.function.NoValuePredicateProvider;
 import com.smartsensesolutions.commons.dao.specification.function.PredicateProvider;
@@ -59,22 +58,22 @@ public class SpecificationUtil<T extends BaseEntity> {
 
     private Predicate getPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
         return switch (criteria.getOperator()) {
-            case Operator.CONTAIN -> getContainsPredicates(criteria, root, cb);
-            case Operator.CONTAIN_WITH_WILDCARD -> getContainsWildcardPredicates(criteria, root, cb);
-            case Operator.NOT_CONTAIN -> getNotContainPredicates(criteria, root, cb);
-            case Operator.NOT_CONTAIN_WITH_WILDCARD -> getNotContainsWildcardPredicates(criteria, root, cb);
-            case Operator.EQUALS -> getEqualsPredicate(criteria, root, cb);
-            case Operator.NOT_EQUAL -> getNotEqualsPredicate(criteria, root, cb);
-            case Operator.NULL -> getIsNullPredicate(criteria, root, cb);
-            case Operator.NOT_NULL -> getIsNotNullPredicate(criteria, root, cb);
-            case Operator.IN -> getInPredicate(criteria, root, cb);
-            case Operator.NOT_IN -> getNotInPredicate(criteria, root, cb);
-            case Operator.TRUE -> getTruePredicate(criteria, root, cb);
-            case Operator.FALSE -> getFalsePredicate(criteria, root, cb);
-            case Operator.LESSER_THAN -> getLesserThanPredicate(criteria, root, cb);
-            case Operator.LESSER_EQUALS -> getLesserEqualPredicate(criteria, root, cb);
-            case Operator.GREATER_THAN -> getGretherThanPredicate(criteria, root, cb);
-            case Operator.GREATER_EQUALS -> getGretherEqualPredicate(criteria, root, cb);
+            case CONTAIN -> getContainsPredicates(criteria, root, cb);
+            case CONTAIN_WITH_WILDCARD -> getContainsWildcardPredicates(criteria, root, cb);
+            case NOT_CONTAIN -> getNotContainPredicates(criteria, root, cb);
+            case NOT_CONTAIN_WITH_WILDCARD -> getNotContainsWildcardPredicates(criteria, root, cb);
+            case EQUALS -> getEqualsPredicate(criteria, root, cb);
+            case NOT_EQUAL -> getNotEqualsPredicate(criteria, root, cb);
+            case NULL -> getIsNullPredicate(criteria, root, cb);
+            case NOT_NULL -> getIsNotNullPredicate(criteria, root, cb);
+            case IN -> getInPredicate(criteria, root, cb);
+            case NOT_IN -> getNotInPredicate(criteria, root, cb);
+            case TRUE -> getTruePredicate(criteria, root, cb);
+            case FALSE -> getFalsePredicate(criteria, root, cb);
+            case LESSER_THAN -> getLesserThanPredicate(criteria, root, cb);
+            case LESSER_EQUALS -> getLesserEqualPredicate(criteria, root, cb);
+            case GREATER_THAN -> getGretherThanPredicate(criteria, root, cb);
+            case GREATER_EQUALS -> getGretherEqualPredicate(criteria, root, cb);
         };
     }
 
@@ -228,7 +227,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
         for (String field : joinFields) {
-            Object value = getValue(joinTable.get(field), criteria.getValues().getFirst());
+            Object value = getValue(joinTable.get(field), criteria.getValues().get(0));
             predicates.add(provider.getPredicate(cb, joinTable.get(field), value));
         }
         return cb.or(toArray(predicates));
@@ -238,7 +237,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
         for (String field : fields) {
-            Object value = getValue(root.get(field), criteria.getValues().getFirst());
+            Object value = getValue(root.get(field), criteria.getValues().get(0));
             predicates.add(provider.getPredicate(cb, root.get(field), value));
         }
         return cb.or(toArray(predicates));
