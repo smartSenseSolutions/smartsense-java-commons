@@ -89,6 +89,11 @@ project(":commons-dao") {
                             name = 'Nitin Vavdiya'
                             email = 'nitin.vavdiya@smartsensesolutions.com'
                         }
+                        developer{
+                            id='sunil.kanzar'
+                            name = 'Sunil Kanzar'
+                            email = 'sunil.kanjar@smartsensesolutions.com'
+                        }
                     }
                     scm {
                         connection = 'scm:git:git://github.com/smartSenseSolutions/smartsense-java-commons.git'
