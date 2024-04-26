@@ -2,6 +2,7 @@ package com.smartsensesolutions.commons.dao.sample.rest;
 
 import com.smartsensesolutions.commons.dao.filter.FilterRequest;
 import com.smartsensesolutions.commons.dao.sample.entity.Author;
+import com.smartsensesolutions.commons.dao.sample.entity.PublicAuthorView;
 import com.smartsensesolutions.commons.dao.sample.request.AuthorRequest;
 import com.smartsensesolutions.commons.dao.sample.service.AuthorService;
 import lombok.AllArgsConstructor;
@@ -26,5 +27,10 @@ public class AuthorResources {
     @PostMapping("/author/search")
     public Page<Author> searchAuthor(@RequestBody FilterRequest request) {
         return authorService.searchBasedOnPagination(request);
+    }
+
+    @PostMapping("/public/author/search")
+    public Page<PublicAuthorView> publicSearchAuthor(@RequestBody FilterRequest request) {
+        return authorService.filterPublicAuthor(request);
     }
 }

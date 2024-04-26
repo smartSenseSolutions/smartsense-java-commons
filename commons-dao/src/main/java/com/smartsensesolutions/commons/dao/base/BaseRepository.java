@@ -41,6 +41,18 @@ public interface BaseRepository<T extends BaseEntity, I> extends JpaRepository<T
     Page<T> findAll(Specification<T> specification, Pageable pageable);
 
     /**
+     * Method used for fetch all elements from the entity class.
+     *
+     * @param specification - Indicates the JPA specification used for search on BaseEntity.
+     * @param pageable      - Indicates the pageable request for JPA queries.
+     * @param clazz         - Projected return
+     * @return Page response with entity details.
+     */
+    <R> Page<R> findAllProjectedBy(Specification<T> specification, Pageable pageable, Class<R> clazz);
+
+    <R> Page<R> findAllProjectedBy(Pageable pageable, Class<R> clazz);
+
+    /**
      * Method used for fetch count based on the JPA specification.
      *
      * @param specification - Indicates the JPA specification used for search on BaseEntity.

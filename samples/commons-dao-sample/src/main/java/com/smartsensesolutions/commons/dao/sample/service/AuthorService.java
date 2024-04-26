@@ -5,6 +5,7 @@ import com.smartsensesolutions.commons.dao.base.BaseService;
 import com.smartsensesolutions.commons.dao.filter.FilterRequest;
 import com.smartsensesolutions.commons.dao.sample.entity.Author;
 import com.smartsensesolutions.commons.dao.sample.entity.Books;
+import com.smartsensesolutions.commons.dao.sample.entity.PublicAuthorView;
 import com.smartsensesolutions.commons.dao.sample.repository.AuthorRepository;
 import com.smartsensesolutions.commons.dao.sample.repository.BooksRepository;
 import com.smartsensesolutions.commons.dao.sample.request.AuthorRequest;
@@ -29,6 +30,10 @@ public class AuthorService extends BaseService<Author, Long> {
 
     public Page<Author> searchBasedOnPagination(FilterRequest request) {
         return filter(request);
+    }
+
+    public Page<PublicAuthorView> filterPublicAuthor(FilterRequest request) {
+        return filter(request, PublicAuthorView.class);
     }
 
     public List<Author> saveAuthorDetails(List<AuthorRequest> requests) {

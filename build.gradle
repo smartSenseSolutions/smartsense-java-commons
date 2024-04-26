@@ -92,7 +92,7 @@ project(":commons-dao") {
                         developer{
                             id='sunil.kanzar'
                             name = 'Sunil Kanzar'
-                            email = 'sunil.kanjar@smartsensesolutions.com'
+                            email = 'sunil.kanzar@smartsensesolutions.com'
                         }
                     }
                     scm {
