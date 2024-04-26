@@ -140,6 +140,18 @@ public abstract class BaseService<E extends BaseEntity, I> {
     }
 
     /**
+     * Method used for generate Page response based on the given FilterRequest.
+     *
+     * @param filter - Indicates the FilterRequest
+     * @param clazz  - Projection class
+     * @return Page of Entity Projection
+     */
+    @Transactional(readOnly = true)
+    public <R> Page<R> filter(FilterRequest filter, Class<R> clazz) {
+        return filter(getSpecificationFromFilterRequest(filter), filter, clazz);
+    }
+
+    /**
      * Method used for generate Page response based on the given FilterRequest and specification.
      *
      * @param specification - Indicates the custom specification that needs to apply.
@@ -155,6 +167,28 @@ public abstract class BaseService<E extends BaseEntity, I> {
                 return getRepository().findAll(pageRequest);
             }
             return getRepository().findAll(specification, pageRequest);
+        } catch (InvalidDataAccessApiUsageException ex) {
+            throw new IllegalArgumentException("field type not support operator or value", ex);
+        }
+    }
+
+    /**
+     * Method used for generate Page response based on the given FilterRequest and specification.
+     *
+     * @param specification - Indicates the custom specification that needs to apply.
+     * @param filter        - Indicates the FilterRequest used to get page and sort parameters, not the criteria
+     *                      parameters
+     * @param clazz         - Projected return type
+     * @return Page of Entity Projection
+     */
+    @Transactional(readOnly = true)
+    private <R> Page<R> filter(Specification<E> specification, FilterRequest filter, Class<R> clazz) {
+        try {
+            PageRequest pageRequest = getPageRequest(filter);
+            if (Objects.isNull(specification)) {
+                return getRepository().findAllProjectedBy(pageRequest, clazz);
+            }
+            return getRepository().findAllProjectedBy(specification, pageRequest, clazz);
         } catch (InvalidDataAccessApiUsageException ex) {
             throw new IllegalArgumentException("field type not support operator or value", ex);
         }
