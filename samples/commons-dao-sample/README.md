@@ -13,31 +13,31 @@ different type of conditional operators and create various types of queries by j
 
 ## 3 Easy steps for integration
 
-1) Add dependency
+### 1. Add dependency
 
-   Here we use Gradle as the build tool and for that we used below dependency with in our build.gradle file.
+Here we use Gradle as the build tool and for that we used below dependency with in our build.gradle file.
 
-    ```groovy
-    implementation group: 'com.smartsensesolutions', name: 'commons-dao', version: '1.0.0'
-    ```
+```groovy
+implementation group: 'com.smartsensesolutions', name: 'commons-dao', version: '1.0.0'
+```
 
-2) Add Component Scan of `com.smartsensesolutions` Or create bean of `SpecificationUtil`
+### 2. Add Component Scan of `com.smartsensesolutions` Or create bean of `SpecificationUtil`
 
-    ```java
-    
-    @SpringBootApplication(scanBasePackages = {"com.smartsensesolutions", "com.smartsensesolutions.java.commons.dao.sample"})
-    public class CommonsDaoSampleApplication {
-    
-        public static void main(String[] args) {
-            SpringApplication.run(CommonsDaoSampleApplication.class, args);
-        }
+```java
+
+@SpringBootApplication(scanBasePackages = {"com.smartsensesolutions", "com.smartsensesolutions.java.commons.dao.sample"})
+public class CommonsDaoSampleApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CommonsDaoSampleApplication.class, args);
     }
-    ```
+}
+```
 
-3) Extends common's base Types
+### 3. Extends common base Types
 
-   Each `Entity`, `Repository` and `Service` class must be extended with the `BaseEntity`, `BaseRepository`
-   and `BaseService` respectively from the above-mentioned packages.
+Each `Entity`, `Repository` and `Service` class must be extended with the `BaseEntity`, `BaseRepository`
+and `BaseService` respectively from the above-mentioned packages.
 
 ## How to use Provided Function
 
@@ -119,328 +119,473 @@ database directly by just passing the DB connection configuration
 You can see all the endpoints with [Open API] after running the Application. Host might be different as par your
 deployment
 
-1. Create new data
+### 1. Create new data
 
-    ```sh
-    curl --location '::8080/create/books' \
-    --header 'Content-Type: application/json' \
-    --data '[
-        {
-            "authorName": "AuthorName",
-            "age": 25,
-            "books": [
-                {
-                    "bookName": "Spring Automation 2022",
-                    "description": "Basic Automation setup from Zero to Hero with SpringBoot 2025."
-                }
-            ]
-        }
-    ]'
-    ```
+```sh
+curl --location '::8080/create/books' \
+--header 'Content-Type: application/json' \
+--data '[
+    {
+        "authorName": "AuthorName",
+        "age": 25,
+        "books": [
+            {
+                "bookName": "Spring Automation 2022",
+                "description": "Basic Automation setup from Zero to Hero with SpringBoot 2025."
+            }
+        ]
+    }
+]'
+```
 
-2. Search APIs
-    1. Get Paginated response of author.
+### 2. Search APIs
 
-       Request Example
-        ```sh
-        curl -X 'POST' \
-        'http://localhost:8080/author/search' \
-        -H 'accept: */*' \
-        -H 'Content-Type: application/json' \
-        -d '{"page":0,"size":5}'
-        ```
-       It will give data of author in the page of 5 records
+#### 2.1. Get Paginated response of author.
 
-       Request Body
-        ```json
-        {
-            "page": 0,
-            "size": 5
-        }
-        ```
+Request Example
 
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author offset 0 limit 5;
-        ```
+```sh
+curl -X 'POST' \
+'http://localhost:8080/author/search' \
+-H 'accept: */*' \
+-H 'Content-Type: application/json' \
+-d '{"page":0,"size":5}'
+```
 
-    2. Get Paginated and Sorted Response of author
+It will give data of author in the page of 5 records
 
-       Request Body
-        ```json
-        {
-            "page": 0,
-            "size": 10,
-            "sort": [
-                {
-                    "column": "age",
-                    "sortType": "ASC"
-                },
-                {
-                    "column": "authorName",
-                    "sortType": "DESC"
-                }
-            ]
-        }
-        ```
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author order by age asc, author_name desc offset 0 limit 5;
-        ```
+Request Body
 
-    3. Search author by the author name.
-        ```json
-        {
-            "page": 0,
-            "size": 5,
-            "criteria": [
-                {
-                    "column": "authorName",
-                    "operator": "EQUALS",
-                    "values": [
-                        "Ziemer Miller"
-                    ]
-                }
-            ]
-        }
-        ```
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author where author_name = 'Ziemer Miller' offset 0 limit 5;
-        ```
+```json
+{
+	"page": 0,
+	"size": 5
+}
+```
 
-    4. Search author who is not active
-       Don't pass ant value for `FALSE` Operator.
-        ```json
-        {
-        	"page": 0,
-        	"size": 5,
-        	"criteria": [
-        		{
-        			"column": "active",
-        			"operator": "FALSE"
-        		}
-        	]
-        }
-        ```
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author where active is false offset 0 limit 5;
-        ```
+Underlying query will look like
 
-    5. Search author with **or** `criteriaOperator`
-        ```json
-        {
-            "page": 0,
-            "size": 5,
-            "criteriaOperator": "OR",
-            "criteria": [
-                {
-                    "column": "authorName",
-                    "operator": "EQUALS",
-                    "values": [
-                        "Ziemer Miller"
-                    ]
-                },
-                {
-                    "column": "id",
-                    "operator": "EQUALS",
-                    "values": [
-                        "1"
-                    ]
-                }
-            ]
-        }
-        ```
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author where author_name = 'Ziemer Miller' or id = 1 offset 0 limit 5;
-        ```
-       Note: Default value for `criteriaOperator` will be `AND`
+```sql
+SELECT * FROM author offset 0 limit 5;
+```
 
-    6. Search author where author name contains `z`.
-        ```json
-        {
-            "page": 0,
-            "size": 5,
-            "criteria": [
-                {
-                    "column": "authorName",
-                    "operator": "CONTAIN",
-                    "values": [
-                        "z"
-                    ]
-                }
-            ]
-        }
-        ```
-       Underlying query will look like
-        ```sql
-        SELECT * FROM author where author_name like '%z%' offset 0 limit 5;
-        ```
+#### 2.2. Get Paginated and Sorted Response of author
 
-    7. Search author by sub entity Address (In join Table)
-        ```json
-        {
-            "page": 0,
-            "size": 5,
-            "criteria": [
-                {
-                    "column": "address.city",
-                    "operator": "IN",
-                    "values": [
-                        "Surat","Gandhinagar"
-                    ]
-                }
-            ]
-        }
-        ```
-       Underlying query will look like:
-        ```sql
-        SELECT * FROM author a 
-        join address ad on a.address_id = ad.id  
-        where ad.city in ('Surat','Gandhinagar')
-        offset 0 limit 5;
-        ```
+Request Body
 
-    8. Search author by city or street field (Use same join for two fields)
-       If you want to use same join on multiple field then you can pass field `,` separated like:
-        ```json
-        {
-            "page": 0,
-            "size": 5,
-            "criteria": [
-                {
-                    "column": "address.city,street",
-                    "operator": "CONTAIN",
-                    "values": [
-                        "str"
-                    ]
-                }
-            ]
-        }
-        ```
-       It will search for `"str"` from city **or** street
+```json
+{
+	"page": 0,
+	"size": 10,
+	"sort": [
+		{
+			"column": "age",
+			"sortType": "ASC"
+		},
+		{
+			"column": "authorName",
+			"sortType": "DESC"
+		}
+	]
+}
+```
 
-       Underlying query will look like:
-        ```sql
-        SELECT * FROM author a
-        join address ad on a.address_id = ad.id  
-        where ad.city like '%str%' or ad.street like '%str%'
-        offset 0 limit 5
-        ```
+The Underlying query will look like
 
-       Note: You can use `,` separated fields even without join like:
-        ```json
-        {
-            "column": "id,addressId",
-            "operator": "EQUALS",
-            "values": [
-                "1"
-            ]
-        }
-        ```
-       It will generate query like where condition like:
-        ```sql
-        SELECT * FROM author
-        where id = 1 or address_id = 1
-        ...;
-        ```
+```sql
+SELECT * FROM author order by age asc, author_name desc offset 0 limit 5;
+```
 
-    9. Search Country of Author of Book
-       Join can go to any number of sub object each table will be separated by `.`.
+#### 2.3. Search author by the author name.
 
-       Author don't have three level of nested object. So, we will take an example of Country entity.
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "authorName",
+			"operator": "EQUALS",
+			"values": [
+				"Ziemer Miller"
+			]
+		}
+	]
+}
+```
 
-       Request Example
-        ```sh
-        curl -X 'POST' \
-        'http://localhost:8080/country/search' \
-        -H 'accept: */*' \
-        -H 'Content-Type: application/json' \
-        -d '{"page":0,"size":5,"criteria":[{"column":"authors.books.bookName","operator":"CONTAIN","values":["java"]}]}'
-        ```
+Underlying query will look like
 
-       Request Body
-        ```json
-        {
-        	"page": 0,
-        	"size": 5,
-        	"criteria": [
-        		{
-        			"column": "authors.books.bookName",
-        			"operator": "CONTAIN",
-        			"values": [
-        				"java"
-        			]
-        		}
-        	]
-        }
-        ```
+```SQL
+SELECT * FROM author where author_name = 'Ziemer Miller' offset 0 limit 5;
+```
 
-    10. Combine `AND` and `OR` criteria On Author
-        ```json
-        {
-        	"page": 0,
-        	"size": 5,
-        	"sort": [
-        		{
-        			"column": "id",
-        			"sortType": "ASC"
-        		}
-        	],
-        	"criteriaOperator": "AND",
-        	"criteria": [
-        		{
-        			"column": "status",
-        			"operator": "IN",
-        			"values": [
-        				"OnLine",
-        				"NoCall",
-        				"DND"
-        			]
-        		},
-        		{
-        			"column": "level",
-        			"operator": "IN",
-        			"values": [
-        				"Beginner",
-        				"Intermediate",
-        				"Expert"
-        			]
-        		}
-        	],
-        	"orCriteria": [
-        		{
-        			"column": "books.bookName",
-        			"operator": "CONTAIN",
-        			"values": [
-        				"java"
-        			]
-        		},
-        		{
-        			"column": "address.street",
-        			"operator": "CONTAIN",
-        			"values": [
-        				"5"
-        			]
-        		}
-        	]
-        }
-        ```
-        Note: here in this case where we pass `criteria` and `orCriteria`. So, all the elements in `criteria` list will
-        be logically joined with `AND` Operator, all the elements in `orCriteria` will be logically joined by `OR`
-        Operator and value in the `criteriaOperator` will be used to join `criteria` and `orCriteria`.
+#### 2.4. Search author who is not active
 
-        Pseudocode for where condition is like:
+Don't pass ant value for `FALSE` Operator.
 
-        ```sql
-        select * from author where 
-            (status in ("OnLine", "NoCall", "DND") and level in ("Beginner", "Intermediate", "Expert"))
-        and
-            (books.bookName like "%java%" or address.street like "%5%")
-        ...;
-        ```
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "active",
+			"operator": "FALSE"
+		}
+	]
+}
+```
+
+The Underlying query will look like
+
+```sql
+SELECT * FROM author where active is false offset 0 limit 5;
+```
+
+#### 2.5. Search author with **or** `criteriaOperator`
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteriaOperator": "OR",
+	"criteria": [
+		{
+			"column": "authorName",
+			"operator": "EQUALS",
+			"values": [
+				"Ziemer Miller"
+			]
+		},
+		{
+			"column": "id",
+			"operator": "EQUALS",
+			"values": [
+				"1"
+			]
+		}
+	]
+}
+```
+
+The Underlying query will look like
+
+```sql
+SELECT * FROM author where author_name = 'Ziemer Miller' or id = 1 offset 0 limit 5;
+```
+
+Note: Default value for `criteriaOperator` will be `AND`
+
+#### 2.6. Search author where author name contains `z`.
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "authorName",
+			"operator": "CONTAIN",
+			"values": [
+				"z"
+			]
+		}
+	]
+}
+```
+
+The Underlying query will look like
+
+```sql
+SELECT * FROM author where author_name like '%z%' offset 0 limit 5;
+```
+
+#### 2.7. Search author by sub entity Address (In join Table)
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "address.city",
+			"operator": "IN",
+			"values": [
+				"Surat",
+				"Gandhinagar"
+			]
+		}
+	]
+}
+```
+
+The Underlying query will look like:
+
+```sql
+SELECT * FROM author a 
+join address ad on a.address_id = ad.id  
+where ad.city in ('Surat','Gandhinagar')
+offset 0 limit 5;
+```
+
+#### 2.8. Search author by city or street field (Use same join for two fields)
+
+If you want to use same join on multiple field then you can pass field `,` separated like:
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "address.city,street",
+			"operator": "CONTAIN",
+			"values": [
+				"str"
+			]
+		}
+	]
+}
+```
+
+It will search for `"str"` from city **or** street
+
+The Underlying query will look like:
+
+```sql
+SELECT * FROM author a
+join address ad on a.address_id = ad.id  
+where ad.city like '%str%' or ad.street like '%str%'
+offset 0 limit 5
+```
+
+Note: You can use `,` separated fields even without join like:
+
+```json
+{
+	"column": "id,addressId",
+	"operator": "EQUALS",
+	"values": [
+		"1"
+	]
+}
+```
+
+It will generate a query like where condition like:
+
+```sql
+SELECT * FROM author
+where id = 1 or address_id = 1
+...;
+```
+
+#### 2.9. Search Country of Author of Book
+
+Join can go to any number of sub object each table will be separated by `.`.
+
+Author don't have three level of nested object. So, we will take an example of Country entity.
+
+Request Example
+
+```sh
+curl -X 'POST' \
+'http://localhost:8080/country/search' \
+-H 'accept: */*' \
+-H 'Content-Type: application/json' \
+-d '{"page":0,"size":5,"criteria":[{"column":"authors.books.bookName","operator":"CONTAIN","values":["java"]}]}'
+```
+
+Request Body
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"criteria": [
+		{
+			"column": "authors.books.bookName",
+			"operator": "CONTAIN",
+			"values": [
+				"java"
+			]
+		}
+	]
+}
+```
+
+#### 2.10. Combine `AND` and `OR` criteria On Author
+
+```json
+{
+	"page": 0,
+	"size": 5,
+	"sort": [
+		{
+			"column": "id",
+			"sortType": "ASC"
+		}
+	],
+	"criteriaOperator": "AND",
+	"criteria": [
+		{
+			"column": "status",
+			"operator": "IN",
+			"values": [
+				"OnLine",
+				"NoCall",
+				"DND"
+			]
+		},
+		{
+			"column": "level",
+			"operator": "IN",
+			"values": [
+				"Beginner",
+				"Intermediate",
+				"Expert"
+			]
+		}
+	],
+	"orCriteria": [
+		{
+			"column": "books.bookName",
+			"operator": "CONTAIN",
+			"values": [
+				"java"
+			]
+		},
+		{
+			"column": "address.street",
+			"operator": "CONTAIN",
+			"values": [
+				"5"
+			]
+		}
+	]
+}
+```
+
+Note: here in this case where we pass `criteria` and `orCriteria`. So, all the elements in `criteria` list will
+be logically joined with `AND` Operator, all the elements in `orCriteria` will be logically joined by `OR`
+Operator and value in the `criteriaOperator` will be used to join `criteria` and `orCriteria`.
+
+Pseudocode for where condition is like:
+
+```sql
+select * from author where 
+    (status in ("OnLine", "NoCall", "DND") and level in ("Beginner", "Intermediate", "Expert"))
+and
+    (books.bookName like "%java%" or address.street like "%5%")
+...;
+```
+
+### 3. Use Entity Projection in with filter
+
+So far we have seen how to filter records by using filter criteria i.e., WHERE clause,
+Now we will see how we can get specific fields instead of all the fields in entity.
+
+Here, in this case, we need to use another variant filter method where we can pass the projected entity type class.
+That type can be anything out of class, interface and record
+
+We have created one demo API representing this functionality
+
+Demo request
+
+```shell
+curl -X 'POST' \
+  'http://localhost:8080/public/author/search' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "page": 0,
+  "size": 5
+}'
+```
+
+```json
+{
+	"content": [
+		{
+			"authorName": "John Doe",
+			"age": 25,
+			"books": [
+				{
+					"bookName": "Spring Data"
+				}
+			]
+		},
+		{
+			"authorName": "Zimple Eriksen",
+			"age": 26,
+			"books": [
+				{
+					"bookName": "Automation with Java"
+				}
+			]
+		},
+		{
+			"authorName": "Yeo Miller",
+			"age": 26,
+			"books": [
+				{
+					"bookName": "Node Js Automation"
+				}
+			]
+		},
+		{
+			"authorName": "Yurky Anderson",
+			"age": 16,
+			"books": [
+				{
+					"bookName": "Data Analytics"
+				}
+			]
+		},
+		{
+			"authorName": "Yurky Thomson",
+			"age": 19,
+			"books": [
+				{
+					"bookName": "Microservice with spring boot"
+				},
+				{
+					"bookName": "Refactoring 10.15"
+				}
+			]
+		}
+	],
+	"pageable": {
+		"pageNumber": 0,
+		"pageSize": 5,
+		"sort": {
+			"sorted": false,
+			"empty": true,
+			"unsorted": true
+		},
+		"offset": 0,
+		"paged": true,
+		"unpaged": false
+	},
+	"last": false,
+	"totalPages": 2,
+	"totalElements": 9,
+	"size": 5,
+	"number": 0,
+	"sort": {
+		"sorted": false,
+		"empty": true,
+		"unsorted": true
+	},
+	"first": true,
+	"numberOfElements": 5,
+	"empty": false
+}
+```
+
+Here we have projected two fields of author in `PublicBookView`, and one filed of a sub entity book in `PublicBookView`.
+
+Note: All the functionality of criteria will work as it is with projection too.
 
 [er-diagram]: ref/er-diagram.png
 
