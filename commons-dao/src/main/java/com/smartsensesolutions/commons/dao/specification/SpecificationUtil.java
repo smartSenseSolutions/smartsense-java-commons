@@ -302,8 +302,9 @@ public class SpecificationUtil<T extends BaseEntity> {
             return new Date(Long.parseLong(value));
         }
         if (path.getJavaType().isEnum()) {
-            for (T enumConstant : path.getJavaType().getEnumConstants()) {
-                if (enumConstant.toString().equals(value)) {
+            Class<? extends Enum> enumType = (Class<? extends Enum>) path.getJavaType();
+            for (Enum enumConstant : enumType.getEnumConstants()) {
+                if (enumConstant.toString().equals(value) || String.valueOf(enumConstant.ordinal()).equals(value)) {
                     return enumConstant;
                 }
             }
