@@ -5,11 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Lately we have been getting a lot of **invalid bug reports** (there was no bug) that take us a lot of time to investigate. This is time we cannot spend on improving commons-dao or the documentation. That's why we now have put in place the following **community guidelines**
-        
-        ### Don't post questions here!
-        If you have a question, please review the [docs](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/samples/commons-dao-sample/README.md) - they are really extensive. If you still can't find your answer there, then go to the discussions and ask there. Maintaining this takes a lot of time and discussions are sometimes other people help there too which gives me time to improve commons-dao itself.
-        
+        We're excited to fix any bugs and improve the library for the Java community.
+
   - type: input
     id: version
     attributes:
