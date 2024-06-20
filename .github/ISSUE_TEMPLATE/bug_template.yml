@@ -1,0 +1,63 @@
+name: Bug report
+description: Create a bug report to help us improve smartSense dao layer.
+title: "[BUG]"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Lately we have been getting a lot of **invalid bug reports** (there was no bug) that take us a lot of time to investigate. This is time we cannot spend on improving commons-dao or the documentation. That's why we now have put in place the following **community guidelines**
+        
+        ### Don't post questions here!
+        If you have a question, please review the [docs](https://github.com/smartSenseSolutions/smartsense-java-commons/blob/master/samples/commons-dao-sample/README.md) - they are really extensive. If you still can't find your answer there, then go to the discussions and ask there. Maintaining this takes a lot of time and discussions are sometimes other people help there too which gives me time to improve commons-dao itself.
+        
+  - type: input
+    id: version
+    attributes:
+      label: Commons-Dao Version
+      description: What version of commons-dao are you running? If you are not running the latest version, we will probably close it without answering.
+      placeholder: ex. 6.0.0
+    validations:
+      required: true
+  - type: input
+    id: jdk-version
+    attributes:
+      label: JDK Version
+      description: Which JRE/JDK are you using?
+      placeholder: ex. OpenJDK 1.8.0_292
+    validations:
+      required: true
+  - type: input
+    id: storage-provider
+    attributes:
+      label: Your SQL
+      description: Which SQL database are you using?
+      placeholder: ex. Postgres, Mariadb
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce?
+      description: Provide a simple Github project or code fragment which shows how to reproduce the issue (ideally a Github repo). If this is not provided, we will close your issue right away.
+      placeholder: How can we reproduce the issue?
+      value: >
+        ```sql
+           select * from table;
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
