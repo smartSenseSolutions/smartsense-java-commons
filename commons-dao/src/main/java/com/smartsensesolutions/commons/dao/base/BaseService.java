@@ -20,6 +20,7 @@ import com.smartsensesolutions.commons.dao.filter.FilterRequest;
 import com.smartsensesolutions.commons.dao.filter.sort.SortType;
 import com.smartsensesolutions.commons.dao.operator.CriteriaOperator;
 import com.smartsensesolutions.commons.dao.specification.SpecificationUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,21 +41,15 @@ import java.util.Objects;
  */
 public abstract class BaseService<E extends BaseEntity, I> {
 
+    @Autowired
+    private SpecificationUtil<E> specificationUtil;
+
     /**
      * Method needs to Override by each service which extends BaseService. It provides Repository of entity type to perform operation
      *
      * @return BaseRepository of @{@link org.springframework.stereotype.Repository} interface.
      */
     protected abstract BaseRepository<E, I> getRepository();
-
-    /**
-     * Method needs to Override by each service which extends BaseService. It provides Filter functionality for entity class
-     *
-     * @return Specification of @{@link jakarta.persistence.Entity} class
-     */
-    protected SpecificationUtil<E> getSpecificationUtil() {
-        return new SpecificationUtil<>();
-    }
 
     /**
      * Method used for save entity.
@@ -160,7 +155,7 @@ public abstract class BaseService<E extends BaseEntity, I> {
      * @return Page of Entity
      */
     @Transactional(readOnly = true)
-    private Page<E> filter(Specification<E> specification, FilterRequest filter) {
+    public Page<E> filter(Specification<E> specification, FilterRequest filter) {
         try {
             PageRequest pageRequest = getPageRequest(filter);
             if (Objects.isNull(specification)) {
@@ -182,7 +177,7 @@ public abstract class BaseService<E extends BaseEntity, I> {
      * @return Page of Entity Projection
      */
     @Transactional(readOnly = true)
-    private <R> Page<R> filter(Specification<E> specification, FilterRequest filter, Class<R> clazz) {
+    public <R> Page<R> filter(Specification<E> specification, FilterRequest filter, Class<R> clazz) {
         try {
             PageRequest pageRequest = getPageRequest(filter);
             if (Objects.isNull(specification)) {
@@ -228,12 +223,12 @@ public abstract class BaseService<E extends BaseEntity, I> {
         }
         if (CollectionUtils.isEmpty(request.getOrCriteria())) {
             if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
-                return getSpecificationUtil().generateOrSpecification(request.getCriteria());
+                return specificationUtil.generateOrSpecification(request.getCriteria());
             }
-            return getSpecificationUtil().generateAndSpecification(request.getCriteria());
+            return specificationUtil.generateAndSpecification(request.getCriteria());
         } else {
-            Specification<E> and = getSpecificationUtil().generateAndSpecification(request.getCriteria());
-            Specification<E> or = getSpecificationUtil().generateOrSpecification(request.getOrCriteria());
+            Specification<E> and = specificationUtil.generateAndSpecification(request.getCriteria());
+            Specification<E> or = specificationUtil.generateOrSpecification(request.getOrCriteria());
             if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
                 return and.or(or);
             }
