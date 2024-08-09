@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "author")
@@ -26,6 +27,9 @@ public class Author implements BaseEntity {
 
     @Column(name = "age", nullable = false)
     private Long age;
+
+    @Column(name = "uuid", nullable = false)
+    private UUID uuid = UUID.randomUUID();
 
     @Column(name = "active", nullable = false)
     private boolean active;

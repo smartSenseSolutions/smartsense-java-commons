@@ -23,11 +23,14 @@ import com.smartsensesolutions.commons.dao.specification.function.NoValuePredica
 import com.smartsensesolutions.commons.dao.specification.function.PredicateProvider;
 import com.smartsensesolutions.commons.dao.specification.function.StringPredicateProvider;
 import jakarta.persistence.criteria.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -36,9 +39,11 @@ import java.util.stream.Collectors;
  * @param <T> - Indicates @{@link jakarta.persistence.Entity} class.
  */
 @Component
+@RequiredArgsConstructor
 public class SpecificationUtil<T extends BaseEntity> {
     private final String TABLE_FIELD_SEPARATOR = "\\.";
     private final String FIELD_SEPARATOR = ",";
+    private final SpecificationValueConverter valueConverter;
 
     public Specification<T> generateOrSpecification(List<Criteria> criteriaList) {
         return (Root<T> root, CriteriaQuery<?> cq, CriteriaBuilder cb) -> {
@@ -227,7 +232,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
         for (String field : joinFields) {
-            Object value = getValue(joinTable.get(field), criteria.getValues().get(0));
+            Object value = valueConverter.getValue(joinTable.get(field), criteria.getValues().get(0));
             predicates.add(provider.getPredicate(cb, joinTable.get(field), value));
         }
         return cb.or(toArray(predicates));
@@ -237,7 +242,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
         for (String field : fields) {
-            Object value = getValue(root.get(field), criteria.getValues().get(0));
+            Object value = valueConverter.getValue(root.get(field), criteria.getValues().get(0));
             predicates.add(provider.getPredicate(cb, root.get(field), value));
         }
         return cb.or(toArray(predicates));
@@ -249,8 +254,8 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] joinFields = getFields(name);
         List<Predicate> predicates = new ArrayList<>();
         for (String field : joinFields) {
-            final Set<Object> valueSet = criteria.getValues().stream()
-                    .map(value -> getValue(joinTable.get(field), value))
+            Set<Object> valueSet = criteria.getValues().stream()
+                    .map(value -> valueConverter.getValue(joinTable.get(field), value))
                     .collect(Collectors.toSet());
             predicates.add(provider.getPredicate(cb, joinTable.get(field), valueSet));
         }
@@ -261,8 +266,8 @@ public class SpecificationUtil<T extends BaseEntity> {
         String[] fields = getFields(criteria.getColumn());
         List<Predicate> predicates = new ArrayList<>();
         for (String field : fields) {
-            final Set<Object> valueSet = criteria.getValues().stream()
-                    .map(value -> getValue(root.get(field), value))
+            Set<Object> valueSet = criteria.getValues().stream()
+                    .map(value -> valueConverter.getValue(root.get(field), value))
                     .collect(Collectors.toSet());
             predicates.add(provider.getPredicate(cb, root.get(field), valueSet));
         }
@@ -297,23 +302,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         return predicates.toArray(new Predicate[0]);
     }
 
-    private Object getValue(Path<T> path, String value) {
-        if (Objects.equals(path.getJavaType().getName(), "java.util.Date")) {
-            return new Date(Long.parseLong(value));
-        }
-        if (path.getJavaType().isEnum()) {
-            Class<? extends Enum> enumType = (Class<? extends Enum>) path.getJavaType();
-            for (Enum enumConstant : enumType.getEnumConstants()) {
-                if (enumConstant.toString().equals(value) || String.valueOf(enumConstant.ordinal()).equals(value)) {
-                    return enumConstant;
-                }
-            }
-            throw new IllegalArgumentException("Invalid Enum Value");
-        }
-        return value;
-    }
-
-    private String getContainsEscValue(final String value) {
+    private String getContainsEscValue(String value) {
         String newVal = value
                 .replace("\\", "\\\\")
                 .replace("_", "\\_")
