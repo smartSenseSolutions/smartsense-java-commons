@@ -77,11 +77,13 @@ public class FilterRequest {
      * Append ascending order by for provided fields
      *
      * @param fieldNames - Indicate entity field name
+     * @return FilterRequest
      */
-    public void appendSort(String... fieldNames) {
+    public FilterRequest appendSort(String... fieldNames) {
         for (String fieldName : fieldNames) {
             appendSort(fieldName, SortType.ASC);
         }
+        return this;
     }
 
     /**
@@ -89,22 +91,26 @@ public class FilterRequest {
      *
      * @param fieldName - Indicate entity field name
      * @param order     - Indicate order
+     * @return FilterRequest
      */
-    public void appendSort(String fieldName, SortType order) {
+    public FilterRequest appendSort(String fieldName, SortType order) {
         sort = sort != null ? sort : new ArrayList<>();
         sort.add(new Sort(fieldName, order));
+        return this;
     }
 
     /**
      * remove from sort list by field name
      *
      * @param fieldName - Indicate entity field name
+     * @return FilterRequest
      */
-    public void removeSort(String fieldName) {
+    public FilterRequest removeSort(String fieldName) {
         if (CollectionUtils.isEmpty(sort)) {
-            return;
+            return this;
         }
-        sort.removeIf((next) -> next.getColumn().equals(fieldName));
+        sort.removeIf((next) -> next.column().equals(fieldName));
+        return this;
     }
 
 
@@ -114,9 +120,11 @@ public class FilterRequest {
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the Varargs values
+     * @return FilterRequest
      */
-    public void appendCriteria(String fieldName, Operator operator, String... values) {
+    public FilterRequest appendCriteria(String fieldName, Operator operator, Object... values) {
         appendCriteria(fieldName, operator, Arrays.asList(values));
+        return this;
     }
 
     /**
@@ -125,22 +133,26 @@ public class FilterRequest {
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the values
+     * @return FilterRequest
      */
-    public void appendCriteria(String fieldName, Operator operator, List<String> values) {
+    public FilterRequest appendCriteria(String fieldName, Operator operator, List<Object> values) {
         criteria = criteria != null ? criteria : new ArrayList<>();
         criteria.add(new Criteria(fieldName, operator, values));
+        return this;
     }
 
     /**
      * Remove all criteria with provided field name from {@code criteria} field.
      *
      * @param fieldName the field name
+     * @return FilterRequest
      */
-    public void removeCriteria(String fieldName) {
+    public FilterRequest removeCriteria(String fieldName) {
         if (CollectionUtils.isEmpty(criteria)) {
-            return;
+            return this;
         }
-        criteria.removeIf((next) -> next.getColumn().equals(fieldName));
+        criteria.removeIf((next) -> next.column().equals(fieldName));
+        return this;
     }
 
     /**
@@ -149,9 +161,11 @@ public class FilterRequest {
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the Varargs values
+     * @return FilterRequest
      */
-    public void appendOrCriteria(String fieldName, Operator operator, String... values) {
+    public FilterRequest appendOrCriteria(String fieldName, Operator operator, String... values) {
         appendOrCriteria(fieldName, operator, Arrays.asList(values));
+        return this;
     }
 
     /**
@@ -160,21 +174,25 @@ public class FilterRequest {
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the values
+     * @return FilterRequest
      */
-    public void appendOrCriteria(String fieldName, Operator operator, List<String> values) {
+    public FilterRequest appendOrCriteria(String fieldName, Operator operator, List<Object> values) {
         orCriteria = orCriteria != null ? orCriteria : new ArrayList<>();
         orCriteria.add(new Criteria(fieldName, operator, values));
+        return this;
     }
 
     /**
      * Remove all criteria with provided field name from {@code orCriteria} field.
      *
      * @param fieldName the field name
+     * @return FilterRequest
      */
-    public void removeOrCriteria(String fieldName) {
+    public FilterRequest removeOrCriteria(String fieldName) {
         if (CollectionUtils.isEmpty(orCriteria)) {
-            return;
+            return this;
         }
-        orCriteria.removeIf((next) -> next.getColumn().equals(fieldName));
+        orCriteria.removeIf((next) -> next.column().equals(fieldName));
+        return this;
     }
 }

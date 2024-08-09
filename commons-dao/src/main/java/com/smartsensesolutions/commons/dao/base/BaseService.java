@@ -226,14 +226,13 @@ public abstract class BaseService<E extends BaseEntity, I> {
                 return specificationUtil.generateOrSpecification(request.getCriteria());
             }
             return specificationUtil.generateAndSpecification(request.getCriteria());
-        } else {
-            Specification<E> and = specificationUtil.generateAndSpecification(request.getCriteria());
-            Specification<E> or = specificationUtil.generateOrSpecification(request.getOrCriteria());
-            if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
-                return and.or(or);
-            }
-            return and.and(or);
         }
+        Specification<E> and = specificationUtil.generateAndSpecification(request.getCriteria());
+        Specification<E> or = specificationUtil.generateOrSpecification(request.getOrCriteria());
+        if (CriteriaOperator.OR.equals(request.getCriteriaOperator())) {
+            return and.or(or);
+        }
+        return and.and(or);
     }
 
     /**
@@ -255,10 +254,14 @@ public abstract class BaseService<E extends BaseEntity, I> {
     }
 
     private Sort.Order toSQLSort(com.smartsensesolutions.commons.dao.filter.sort.Sort sort) {
-        if (sort.getSortType().equals(SortType.ASC)) {
-            return Sort.Order.asc(sort.getColumn());
-        } else {
-            return Sort.Order.desc(sort.getColumn());
+        if (sort.sortType().equals(SortType.ASC)) {
+            return Sort.Order.asc(sort.column());
         }
+        return Sort.Order.desc(sort.column());
+    }
+
+    public boolean exists(FilterRequest request) {
+        Specification<E> specification = getSpecificationFromFilterRequest(request);
+        return getRepository().exists(specification);
     }
 }

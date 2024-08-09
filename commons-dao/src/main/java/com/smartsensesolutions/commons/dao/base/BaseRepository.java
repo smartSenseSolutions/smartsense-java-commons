@@ -50,6 +50,8 @@ public interface BaseRepository<T extends BaseEntity, I> extends JpaRepository<T
      */
     <R> Page<R> findAllProjectedBy(Specification<T> specification, Pageable pageable, Class<R> clazz);
 
+    boolean exists(Specification<T> specification);
+
     <R> Page<R> findAllProjectedBy(Pageable pageable, Class<R> clazz);
 
     /**
