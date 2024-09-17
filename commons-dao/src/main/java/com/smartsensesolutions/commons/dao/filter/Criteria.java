@@ -19,37 +19,20 @@ package com.smartsensesolutions.commons.dao.filter;
 import com.smartsensesolutions.commons.dao.operator.Operator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
 /**
  * Criteria used in {@link FilterRequest} to provide custom search.
+ *
+ * @param column   - Indicates the variable name that used in @{@link jakarta.persistence.Entity} class i.e. Entity field name
+ * @param operator - Conditional operator for Criteria Indicates the value from the {@link Operator}.
+ * @param values   -  Values that needs to be matched while querying to @{@link jakarta.persistence.Entity} class.
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-public class Criteria {
-
-    /**
-     * Indicates the variable name that used in @{@link jakarta.persistence.Entity} class i.e. Entity field name
-     */
-    @NotBlank(message = "{NotNull.Criteria.column}")
-    private String column;
-
-    /**
-     * Conditional operator for Criteria Indicates the value from the {@link Operator}.
-     */
-    @NotNull(message = "{NotNull.Criteria.operator}")
-    private Operator operator;
-
-    /**
-     * Values that needs to be matched while querying to @{@link jakarta.persistence.Entity} class.
-     */
-    private List<String> values;
-
+public record Criteria(
+        @NotBlank(message = "{NotNull.Criteria.column}")
+        String column,
+        @NotNull(message = "{NotNull.Criteria.operator}")
+        Operator operator,
+        List<Object> values) {
 }

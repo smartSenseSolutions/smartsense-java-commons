@@ -16,28 +16,11 @@
 
 package com.smartsensesolutions.commons.dao.filter.sort;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 /**
  * Sort used in {@link com.smartsensesolutions.commons.dao.filter.FilterRequest} to provide sorting.
+ *
+ * @param column   - Indicates the variable name that used in @{@link jakarta.persistence.Entity} class.
+ * @param sortType - Indicates the ASD or DESC sort on column. Values used from the {@link SortType}.
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-public class Sort {
-
-    /**
-     * Indicates the variable name that used in @{@link jakarta.persistence.Entity} class.
-     */
-    private String column;
-    /**
-     * Indicates the ASD or DESC sort on column.
-     * Values used from the {@link SortType}.
-     */
-    private SortType sortType;
-
+public record Sort(String column, SortType sortType) {
 }

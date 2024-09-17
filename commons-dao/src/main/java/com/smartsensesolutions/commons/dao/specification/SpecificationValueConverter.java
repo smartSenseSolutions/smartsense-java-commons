@@ -10,11 +10,11 @@ import java.util.UUID;
 @Component
 public class SpecificationValueConverter {
 
-    public Object getValue(Path path, String value) {
+    public Object getValue(Path path, Object value) {
         if (Objects.equals(path.getJavaType().getName(), "java.util.Date")) {
-            return new Date(Long.parseLong(value));
+            return new Date(Long.parseLong(value.toString()));
         } else if (Objects.equals(path.getJavaType().getName(), "java.util.UUID")) {
-            return UUID.fromString(value);
+            return UUID.fromString(value.toString());
         } else if (path.getJavaType().isEnum()) {
             Class<? extends Enum> enumType = (Class<? extends Enum>) path.getJavaType();
             for (Enum enumConstant : enumType.getEnumConstants()) {
