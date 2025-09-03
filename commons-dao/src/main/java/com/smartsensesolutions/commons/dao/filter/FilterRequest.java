@@ -17,7 +17,6 @@
 package com.smartsensesolutions.commons.dao.filter;
 
 import com.smartsensesolutions.commons.dao.filter.sort.Sort;
-import com.smartsensesolutions.commons.dao.filter.sort.SortType;
 import com.smartsensesolutions.commons.dao.operator.CriteriaOperator;
 import com.smartsensesolutions.commons.dao.operator.Operator;
 import jakarta.validation.Valid;
@@ -48,13 +47,12 @@ public class FilterRequest {
      * Indicates the size which used to prepare pagination response from JPA query.
      */
     @NotNull(message = "{NotNull.RecordFilter.size}")
-    @Min(value = 1)
     private int size;
 
     /**
      * Indicates the sorting objects that used in JPA query.
      */
-    private List<Sort> sort;
+    private Sort sort;
 
     /**
      * Indicates the logical operator that will be used between two criteria/(criteria and orCriteria)
@@ -74,57 +72,14 @@ public class FilterRequest {
     private List<Criteria> orCriteria;
 
     /**
-     * Append ascending order by for provided fields
-     *
-     * @param fieldNames - Indicate entity field name
-     * @return FilterRequest
-     */
-    public FilterRequest appendSort(String... fieldNames) {
-        for (String fieldName : fieldNames) {
-            appendSort(fieldName, SortType.ASC);
-        }
-        return this;
-    }
-
-    /**
-     * Append order by for provided field with order
-     *
-     * @param fieldName - Indicate entity field name
-     * @param order     - Indicate order
-     * @return FilterRequest
-     */
-    public FilterRequest appendSort(String fieldName, SortType order) {
-        sort = sort != null ? sort : new ArrayList<>();
-        sort.add(new Sort(fieldName, order));
-        return this;
-    }
-
-    /**
-     * remove from sort list by field name
-     *
-     * @param fieldName - Indicate entity field name
-     * @return FilterRequest
-     */
-    public FilterRequest removeSort(String fieldName) {
-        if (CollectionUtils.isEmpty(sort)) {
-            return this;
-        }
-        sort.removeIf((next) -> next.column().equals(fieldName));
-        return this;
-    }
-
-
-    /**
      * Builder method used to add new Criteria to the {@code criteria} field
      *
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the Varargs values
-     * @return FilterRequest
      */
-    public FilterRequest appendCriteria(String fieldName, Operator operator, Object... values) {
+    public void appendCriteria(String fieldName, Operator operator, String... values) {
         appendCriteria(fieldName, operator, Arrays.asList(values));
-        return this;
     }
 
     /**
@@ -133,12 +88,11 @@ public class FilterRequest {
      * @param fieldName - Indicates the Column name
      * @param operator  - Indicates operator
      * @param values    - Indicates the values
-     * @return FilterRequest
      */
-    public FilterRequest appendCriteria(String fieldName, Operator operator, List<Object> values) {
-        criteria = criteria != null ? criteria : new ArrayList<>();
-        criteria.add(new Criteria(fieldName, operator, values));
-        return this;
+    public void appendCriteria(String fieldName, Operator operator, List<String> values) {
+        List<Criteria> filterCriteria = getCriteria() != null ? getCriteria() : new ArrayList<>();
+        filterCriteria.add(new Criteria(fieldName, operator.getOperatorValue(), values));
+        setCriteria(filterCriteria);
     }
 
     /**
@@ -176,9 +130,9 @@ public class FilterRequest {
      * @param values    - Indicates the values
      * @return FilterRequest
      */
-    public FilterRequest appendOrCriteria(String fieldName, Operator operator, List<Object> values) {
+    public FilterRequest appendOrCriteria(String fieldName, Operator operator, List<String> values) {
         orCriteria = orCriteria != null ? orCriteria : new ArrayList<>();
-        orCriteria.add(new Criteria(fieldName, operator, values));
+        orCriteria.add(new Criteria(fieldName, operator.getOperatorValue(), values));
         return this;
     }
 

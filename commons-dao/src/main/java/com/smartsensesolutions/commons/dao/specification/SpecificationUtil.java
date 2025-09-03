@@ -17,7 +17,9 @@
 package com.smartsensesolutions.commons.dao.specification;
 
 import com.smartsensesolutions.commons.dao.base.BaseEntity;
+import com.smartsensesolutions.commons.dao.exception.BadOperatorException;
 import com.smartsensesolutions.commons.dao.filter.Criteria;
+import com.smartsensesolutions.commons.dao.operator.Operator;
 import com.smartsensesolutions.commons.dao.specification.function.MultiValuePredicateProvider;
 import com.smartsensesolutions.commons.dao.specification.function.NoValuePredicateProvider;
 import com.smartsensesolutions.commons.dao.specification.function.PredicateProvider;
@@ -28,10 +30,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.smartsensesolutions.commons.dao.operator.Operator.getOperator;
 
 /**
  * Specification will be used to generate specification for {@code T} type of entity JPA query.
@@ -62,7 +64,12 @@ public class SpecificationUtil<T extends BaseEntity> {
     }
 
     private Predicate getPredicate(Criteria criteria, Root<T> root, CriteriaBuilder cb) {
-        return switch (criteria.operator()) {
+        Operator operator = getOperator(criteria.operator());
+        if (Objects.isNull(operator)) {
+            var message = "Invalid operator " + criteria.operator() + " has been provided, Supported operators are " + Arrays.toString(Operator.values());
+            throw new BadOperatorException(message);
+        }
+        return switch (operator) {
             case CONTAIN -> getContainsPredicates(criteria, root, cb);
             case CONTAIN_WITH_WILDCARD -> getContainsWildcardPredicates(criteria, root, cb);
             case NOT_CONTAIN -> getNotContainPredicates(criteria, root, cb);
@@ -313,7 +320,7 @@ public class SpecificationUtil<T extends BaseEntity> {
         return "%".concat(newVal).concat("%").toLowerCase();
     }
 
-    private void validateValue(List<Object> values) {
+    private void validateValue(List<String> values) {
         if (CollectionUtils.isEmpty(values)) {
             throw new IllegalArgumentException("value/s require");
         }

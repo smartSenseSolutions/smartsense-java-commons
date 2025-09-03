@@ -245,12 +245,12 @@ public abstract class BaseService<E extends BaseEntity, I> {
         if (filter.getSize() <= 0) {
             filter.setSize(Integer.MAX_VALUE);
         }
-        Sort sort = Sort.unsorted();
-        if (!CollectionUtils.isEmpty(filter.getSort())) {
-            List<Sort.Order> orders = filter.getSort().stream().map(this::toSQLSort).toList();
-            sort = Sort.by(orders);
+        if (Objects.nonNull(filter.getSort())) {
+            Sort sort = Sort.by(filter.getSort().sortType() == SortType.ASC ? Sort.Direction.ASC : Sort.Direction.DESC, filter.getSort().column());
+            return PageRequest.of(filter.getPage(), filter.getSize(), sort);
+        } else {
+            return PageRequest.of(filter.getPage(), filter.getSize());
         }
-        return PageRequest.of(filter.getPage(), filter.getSize(), sort);
     }
 
     private Sort.Order toSQLSort(com.smartsensesolutions.commons.dao.filter.sort.Sort sort) {

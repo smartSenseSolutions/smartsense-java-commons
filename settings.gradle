@@ -1,4 +1,0 @@
-rootProject.name = 'java.commons'
-
-include(":commons-dao")
-include(":samples:commons-dao-sample")

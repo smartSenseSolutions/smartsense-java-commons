@@ -591,16 +591,16 @@ Note: All the functionality of criteria will work as it is with projection too.
 
 [smartsensesolutions-commons-dao]: ../../
 
-[FilterRequest]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/FilterRequest.java
+[FilterRequest]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/FilterRequest.java
 
-[Sort]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/sort/Sort.java
+[Sort]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/sort/Sort.java
 
-[direction]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/sort/SortType.java
+[direction]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/sort/SortType.java
 
-[Criteria]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/Criteria.java
+[Criteria]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/filter/Criteria.java
 
-[Operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/operator/Operator.java
+[Operator]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/operator/Operator.java
 
-[logical operator]: ../../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/operator/CriteriaOperator.java
+[logical operator]: ../commons-dao/src/main/java/com/smartsensesolutions/commons/dao/operator/CriteriaOperator.java
 
 [Open API]: http://localhost:8080/ui/swagger-ui/index.html#

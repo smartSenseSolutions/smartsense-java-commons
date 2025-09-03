@@ -33,6 +33,6 @@ public record Criteria(
         @NotBlank(message = "{NotNull.Criteria.column}")
         String column,
         @NotNull(message = "{NotNull.Criteria.operator}")
-        Operator operator,
-        List<Object> values) {
+        String operator,
+        List<String> values) {
 }

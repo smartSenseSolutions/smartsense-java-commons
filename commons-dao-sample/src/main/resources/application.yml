@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/dao-poc
     username: root
-    password:
+    password: root
     driverClassName: org.postgresql.Driver
   flyway:
     enabled: true

@@ -5,20 +5,12 @@ plugins {
     id 'io.spring.dependency-management'
 }
 
-version = commonDaoVersion
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
+version = serviceUtilsVersion
 
 dependencies {
-    api 'jakarta.validation:jakarta.validation-api'
+    implementation "com.fasterxml.jackson.core:jackson-databind:${fasterxmlVersion}"
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    api "com.smartsensesolutions:commons-dao:${commonDaoVersion}"
 }
 
 bootJar {
